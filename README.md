@@ -2,7 +2,7 @@
 
 ## Project Description
 
-**MazeMaster** is a C++ application built with the Qt framework, designed to generate, solve, and analyze mazes with a highly interactive graphical user interface (GUI). The system generates random mazes using recursive backtracking, solves them with multiple pathfinding algorithms (Breadth-First Search, Depth-First Search, and A\*), and provides advanced path analysis (e.g., path length, number of turns, dead ends). The Qt-based GUI features dynamic visualization, animating the solving process, and user controls for maze size and algorithm selection. Developed for a college Object-Oriented Programming (OOP) course, this project demonstrates all OOP concepts—encapsulation, inheritance, polymorphism, abstraction, and composition—through a modular, robust design for a team of five, aiming to deliver an engaging and technically impressive solution.
+This is a C++ application built with the Qt framework, designed to generate, solve, and analyze mazes with a highly interactive graphical user interface (GUI). The system generates random mazes using recursive backtracking, solves them with multiple pathfinding algorithms (Breadth-First Search, Depth-First Search, and A\*), and provides advanced path analysis (e.g., path length, number of turns, dead ends). The Qt-based GUI features dynamic visualization, animating the solving process, and user controls for maze size and algorithm selection. Developed for a college Object-Oriented Programming (OOP) course, this project demonstrates all OOP concepts—encapsulation, inheritance, polymorphism, abstraction, and composition—through a modular, robust design for a team of five, aiming to deliver an engaging and technically impressive solution.
 
 ## OOP Concepts Applied
 

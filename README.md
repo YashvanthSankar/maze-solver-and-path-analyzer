@@ -1,36 +1,36 @@
-# 🎯 Maze Solver & Path Analyzer
+# Maze Solver & Path Analyzer
 ### Advanced Pathfinding with Pure OOP Concepts in C++
 
 ![C++11](https://img.shields.io/badge/C%2B%2B-11-blue) ![OOP](https://img.shields.io/badge/OOP-Pure-orange) ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
 ---
 
-## 🌟 Overview
+## Overview
 
 A professional-grade maze solver demonstrating **pure OOP concepts** (Encapsulation, Abstraction, Operator Overloading) without using inheritance, polymorphism, templates, or exception handling. Features instant maze generation, dual solving algorithms (BFS & Dijkstra), animated visualization, and a beautiful CLI interface.
 
-### ✨ Key Features
+### Key Features
 
-- **⚡ Instant Maze Generation** - Recursive backtracking algorithm generates perfect mazes in milliseconds
-- **🎨 Beautiful CLI** - ANSI colors, animations, progress bars, and smooth transitions
-- **🧠 Dual Algorithms** - BFS (shortest path) and Dijkstra (optimal cost)
-- **🎬 Animated Visualization** - Watch path discovery step-by-step with progress tracking
-- **📊 Path Analysis** - Detailed metrics including length, turns, cost, and bottlenecks
-- **🔬 Algorithm Comparison** - Side-by-side analysis with visual overlay
-- **🎯 Quick Solve** - One-click workflow: generate + solve + compare
+- **Instant Maze Generation** - Recursive backtracking algorithm generates perfect mazes in milliseconds
+- **Beautiful CLI** - ANSI colors, animations, progress bars, and smooth transitions
+- **Dual Algorithms** - BFS (shortest path) and Dijkstra (optimal cost)
+- **Animated Visualization** - Watch path discovery step-by-step with progress tracking
+- **Path Analysis** - Detailed metrics including length, turns, cost, and bottlenecks
+- **Algorithm Comparison** - Side-by-side analysis with visual overlay
+- **Quick Solve** - One-click workflow: generate + solve + compare
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Build
 ```bash
-make -f Makefile_v2
+make -f Makefile
 ```
 
 ### Run
 ```bash
-./maze_solver_v2
+./maze_solver
 ```
 
 ### Quick Demo (30 seconds)
@@ -41,7 +41,7 @@ make -f Makefile_v2
 
 ---
 
-## 🎯 OOP Concepts Demonstrated
+## OOP Concepts Demonstrated
 
 ### 1. **Encapsulation** ⭐⭐⭐⭐⭐
 
@@ -111,7 +111,7 @@ if (metrics1 < metrics2) { ... }
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 maze-solver/
@@ -151,9 +151,9 @@ maze-solver/
 
 ---
 
-## 🎮 Features Guide
+## Features Guide
 
-### 1. 📁 Load Maze from File
+### 1. Load Maze from File
 
 Load pre-defined maze files in simple text format.
 
@@ -180,7 +180,7 @@ S . . # . . . . . .
 - `~` - Water (cost: 2.0)
 - `^` - Mountain (cost: 3.0)
 
-### 2. ✨ Generate New Maze
+### 2. Generate New Maze
 
 Instantly create beautiful, solvable mazes using **Recursive Backtracking**.
 
@@ -195,7 +195,7 @@ Instantly create beautiful, solvable mazes using **Recursive Backtracking**.
 - Can add extra paths for multiple solutions
 - Supports terrain features (water, mountains)
 
-### 3. 🎯 Quick Solve
+### 3. Quick Solve
 
 One-click complete workflow:
 1. Generate medium-sized maze
@@ -215,7 +215,7 @@ Perfect for demonstrations!
 
 **Best for:** Simple mazes without terrain
 
-### 5. 🚀 Dijkstra's Algorithm
+### 5. Dijkstra's Algorithm
 
 **Properties:**
 - Guarantees optimal path (by cost)
@@ -225,7 +225,7 @@ Perfect for demonstrations!
 
 **Best for:** Mazes with varied terrain costs
 
-### 6. 📊 Path Analysis
+### 6. Path Analysis
 
 Comprehensive metrics:
 - **Length**: Total steps in path
@@ -235,7 +235,7 @@ Comprehensive metrics:
 - **Narrow Passages**: Bottleneck count
 - **Nodes Explored**: Algorithm efficiency
 
-### 7. 🔬 Compare Solutions
+### 7. Compare Solutions
 
 Side-by-side comparison of BFS and Dijkstra:
 - Detailed metrics for each
@@ -243,7 +243,7 @@ Side-by-side comparison of BFS and Dijkstra:
 - Performance comparison
 - Different symbols for each path
 
-### 8. 🎬 Animated Visualization
+### 8. Animated Visualization
 
 Watch the algorithm discover the path in real-time:
 - Step-by-step path drawing
@@ -251,7 +251,7 @@ Watch the algorithm discover the path in real-time:
 - Color-coded visualization
 - Configurable speed
 
-### 9. 🖼️ Display Maze
+### 9. Display Maze
 
 View maze with color-coded elements:
 - 🟢 **Green** - Start (S)
@@ -261,7 +261,7 @@ View maze with color-coded elements:
 - 🔵 **Cyan** - Water (~)
 - 🟠 **Orange** - Mountains (^)
 
-### 10. ⚙️ Settings
+### 10. Settings
 
 - Toggle ANSI colors on/off
 - Save generated mazes to file
@@ -269,7 +269,7 @@ View maze with color-coded elements:
 
 ---
 
-## 🎨 Visual Experience
+## Visual Experience
 
 ### Welcome Screen
 ```
@@ -324,7 +324,7 @@ Legend: S=Start, G=Goal, #=Wall, *=Path
 
 ---
 
-## 🧠 Algorithms Explained
+## Algorithms Explained
 
 ### Maze Generation: Recursive Backtracking
 
@@ -373,7 +373,7 @@ Legend: S=Start, G=Goal, #=Wall, *=Path
 
 ---
 
-## 💻 Technical Details
+## Technical Details
 
 ### Code Quality
 - ✅ No compiler warnings (-Wall -Wextra)
@@ -400,7 +400,7 @@ Legend: S=Start, G=Goal, #=Wall, *=Path
 
 ---
 
-## 🎓 Learning Outcomes
+## Learning Outcomes
 
 ### OOP Concepts
 - ✅ Strong encapsulation with private data
@@ -426,25 +426,25 @@ Legend: S=Start, G=Goal, #=Wall, *=Path
 
 ---
 
-## 🛠️ Build System
+## Build System
 
 ### Makefile Commands
 
 ```bash
 # Build the project
-make -f Makefile_v2
+make -f Makefile
 
 # Build and run
-make -f Makefile_v2 run
+make -f Makefile run
 
 # Clean build artifacts
-make -f Makefile_v2 clean
+make -f Makefile clean
 
 # Clean and rebuild
-make -f Makefile_v2 rebuild
+make -f Makefile rebuild
 
 # Show help
-make -f Makefile_v2 help
+make -f Makefile help
 ```
 
 ### Requirements
@@ -454,7 +454,7 @@ make -f Makefile_v2 help
 
 ---
 
-## 📊 Project Statistics
+## Project Statistics
 
 | Metric | Count |
 |--------|-------|
@@ -470,7 +470,7 @@ make -f Makefile_v2 help
 
 ---
 
-## 🏆 What Makes This Project Stand Out
+## What Makes This Project Stand Out
 
 ### 1. **Pure OOP Implementation**
 - Focuses on core concepts without advanced features
@@ -498,7 +498,7 @@ make -f Makefile_v2 help
 
 ---
 
-## 🎯 Use Cases
+## Use Cases
 
 ### Academic
 - CS curriculum projects
@@ -520,7 +520,7 @@ make -f Makefile_v2 help
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This is an educational project demonstrating OOP concepts. Feel free to:
 - Study the code structure
@@ -530,25 +530,23 @@ This is an educational project demonstrating OOP concepts. Feel free to:
 
 ---
 
-## 📝 License
+## License
 
 This project is for educational purposes. Feel free to use, modify, and learn from it.
 
 ---
 
-## 🎉 Conclusion
+## Conclusion
 
 This project successfully demonstrates:
-- ✅ Strong OOP principles (Encapsulation, Abstraction, Operator Overloading)
-- ✅ Advanced algorithms (Recursive Backtracking, BFS, Dijkstra)
-- ✅ Professional user experience (Colors, animations, fluid navigation)
-- ✅ Production-quality code (Clean, documented, memory-safe)
-- ✅ Educational value (Perfect for learning and portfolios)
+- Strong OOP principles (Encapsulation, Abstraction, Operator Overloading)
+- Advanced algorithms (Recursive Backtracking, BFS, Dijkstra)
+- Professional user experience (Colors, animations, fluid navigation)
+- Production-quality code (Clean, documented, memory-safe)
+- Educational value (Perfect for learning and portfolios)
 
-**Perfect for demonstrating OOP mastery in C++!**
 
 ---
 
-**Built with ❤️ using pure OOP concepts in C++11**  
-*No inheritance • No polymorphism • No templates • No exceptions*
+**Built with ❤️ using pure OOP concepts in C++11** 
 

@@ -7,12 +7,13 @@
 
 ## Overview
 
-A professional-grade maze solver demonstrating **pure OOP concepts** (Encapsulation, Abstraction, Operator Overloading) without using inheritance, polymorphism, templates, or exception handling. Features instant maze generation, dual solving algorithms (BFS & Dijkstra), animated visualization, and a beautiful CLI interface.
+A professional-grade maze solver demonstrating **pure OOP concepts** (Encapsulation, Abstraction, Operator Overloading) without using inheritance, polymorphism, templates, or exception handling. Features instant maze generation, dual solving algorithms (BFS & Dijkstra), animated visualization, **interactive game mode with ncurses**, and a beautiful CLI interface.
 
 ### Key Features
 
+- **Interactive Game Mode** 🎮 - Play mazes yourself with arrow keys in real-time ncurses interface!
 - **Instant Maze Generation** - Recursive backtracking algorithm generates perfect mazes in milliseconds
-- **Beautiful CLI** - ANSI colors, animations, progress bars, and smooth transitions
+- **Beautiful CLI** - UTF-8 box-drawing, ANSI colors, animations, progress bars
 - **Dual Algorithms** - BFS (shortest path) and Dijkstra (optimal cost)
 - **Animated Visualization** - Watch path discovery step-by-step with progress tracking
 - **Path Analysis** - Detailed metrics including length, turns, cost, and bottlenecks
@@ -125,7 +126,8 @@ maze-solver/
 │   ├── PathAnalyzer.cpp         # Path metrics
 │   ├── Renderer.cpp             # Visualization
 │   ├── MazeGenerator.cpp        # Maze generation
-│   └── CLIUtils.cpp             # CLI utilities
+│   ├── CLIUtils.cpp             # CLI utilities
+│   └── GameMode.cpp             # Interactive game mode
 │
 ├── include/                      # Header files
 │   ├── Point.h
@@ -136,7 +138,8 @@ maze-solver/
 │   ├── PathAnalyzer.h
 │   ├── Renderer.h
 │   ├── MazeGenerator.h
-│   └── CLIUtils.h
+│   ├── CLIUtils.h
+│   └── GameMode.h
 │
 ├── examples/                     # Sample maze files
 │   ├── maze2_medium.txt
@@ -144,7 +147,7 @@ maze-solver/
 │
 ├── build/                        # Compiled objects (auto-generated)
 │
-├── Makefile                      # Build system
+├── Makefile                      # Build system (with ncurses)
 ├── .gitignore                   # Git ignore rules
 └── README.md                     # This file
 ```
@@ -248,6 +251,47 @@ Side-by-side comparison of BFS and Dijkstra:
 Watch the algorithm discover the path in real-time:
 - Step-by-step path drawing
 - Progress bar showing completion
+- Adjustable animation speed
+- Full UTF-8 symbols for clarity
+
+### 9. Display Maze
+
+View the complete maze layout with:
+- UTF-8 box-drawing borders (╔═╗║╚╝)
+- Clear wall symbols (█)
+- Color-coded terrain (≈ water, ▲ mountains)
+- Start (S) and Goal (G) markers
+- Legend for reference
+
+### 10. 🎮 Interactive Game Mode **NEW!**
+
+**Play the maze yourself!** Navigate through mazes using arrow keys in a real-time ncurses interface.
+
+**Features:**
+- **Real-time gameplay** with arrow key controls (↑↓←→ or WASD)
+- **Live statistics** showing moves and elapsed time
+- **Dynamic difficulty** - Choose Easy/Medium/Hard or use existing maze
+- **Victory screen** with final score calculation
+- **Beautiful ncurses UI** with color-coded elements
+- **Score system** based on moves and time
+
+**Controls:**
+- `↑` or `W` - Move up
+- `↓` or `S` - Move down
+- `←` or `A` - Move left
+- `→` or `D` - Move right
+- `Q` or `ESC` - Quit game
+
+**Scoring:**
+- Base score: 10,000 points
+- -10 points per move
+- -1 point per second
+- Minimum score: 0
+
+**Perfect for:**
+- Testing your pathfinding skills against the algorithms!
+- Fun, interactive maze experience
+- Educational gameplay demonstrating graph traversal
 - Color-coded visualization
 - Configurable speed
 
@@ -451,6 +495,10 @@ make -f Makefile help
 - **Compiler:** g++ with C++11 support
 - **OS:** Linux, macOS, or Windows WSL
 - **Terminal:** ANSI color support recommended
+- **Library:** ncurses (for interactive game mode)
+  - Linux: `sudo apt-get install libncurses5-dev libncurses5`
+  - macOS: `brew install ncurses`
+  - Usually pre-installed on most systems
 
 ---
 
@@ -458,9 +506,9 @@ make -f Makefile help
 
 | Metric | Count |
 |--------|-------|
-| **Classes** | 10 |
-| **Source Files** | 20 (10 .h + 10 .cpp) |
-| **Lines of Code** | ~2,500 |
+| **Classes** | 11 |
+| **Source Files** | 22 (11 .h + 11 .cpp) |
+| **Lines of Code** | ~3,000 |
 | **OOP Concepts** | 3 (Encapsulation, Abstraction, Operators) |
 | **Algorithms** | 3 (Backtracking, BFS, Dijkstra) |
 | **Data Structures** | 5 (Queue, PriorityQueue, Array, Grid, Graph) |

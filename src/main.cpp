@@ -7,6 +7,7 @@
 #include "Renderer.h"
 #include "MazeGenerator.h"
 #include "CLIUtils.h"
+#include "GameMode.h"
 #include <iostream>
 #include <ctime>
 #include <unistd.h>
@@ -35,6 +36,7 @@ private:
     void handleComparePaths();
     void handleVisualize();
     void handleQuickSolve();
+    void handlePlayGame();
     void handleSettings();
     
 public:
@@ -69,41 +71,68 @@ void MazeSolverApp::showWelcome() {
 
 void MazeSolverApp::showMainMenu() {
     cli_.clearScreen();
-    cli_.printHeader("MAIN MENU");
     
     std::cout << "\n";
-    cli_.printSubHeader("Maze Operations");
-    std::cout << "  1. 📁 Load Maze from File\n";
-    std::cout << "  2. ✨ Generate New Maze (Instant!)\n";
-    std::cout << "  3. 🎯 Quick Solve (Generate + Solve)\n";
+    
+    // Main menu box with original beautiful design
+    std::cout << "\033[1;36m"; // Cyan
+    std::cout << "        ╔══════════════════════════════════════════════════════════════════════════╗\n";
+    std::cout << "        ║                            \033[1;33mMAIN MENU\033[1;36m                                 ║\n";
+    std::cout << "        ╠══════════════════════════════════════════════════════════════════════════╣\n";
+    std::cout << "\033[0m"; // Reset
+    
+    // Maze Operations Section
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m⚡ Maze Operations\033[0m                                                     \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m1.\033[0m 📁 Load Maze from File                                            \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m2.\033[0m ✨ Generate New Maze \033[1;32m(Instant!)\033[0m                                  \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m3.\033[0m 🎯 Quick Solve \033[1;35m(Generate + Solve)\033[0m                                \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
+    
+    // Solving Algorithms Section
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m🧠 Solving Algorithms\033[0m                                                 \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m4.\033[0m 🔍 Solve with BFS                                                \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m5.\033[0m 🚀 Solve with Dijkstra                                           \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m6.\033[0m ⚡ Solve with Both Algorithms                                     \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
+    
+    // Analysis & Visualization Section
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m📈 Analysis & Visualization\033[0m                                          \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m7.\033[0m 📊 Analyze Current Path                                          \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m8.\033[0m 🔬 Compare Both Solutions                                        \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m9.\033[0m 🎬 Animated Visualization                                        \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    \033[1;37m10.\033[0m 🖼️  Display Maze                                                 \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
+    
+    // Interactive Game Section
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m🎮 Interactive Mode\033[0m                                                   \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    \033[1;37m11.\033[0m 🎮 Play Maze Game \033[1;32m(Arrow Keys!)\033[0m                                \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
+    
+    // Other Section
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m⚙️  Other Options\033[0m                                                     \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    \033[1;37m12.\033[0m ⚙️  Settings                                                     \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m0.\033[0m 🚪 Exit                                                          \033[1;36m║\033[0m\n";
+    
+    std::cout << "\033[1;36m";
+    std::cout << "        ╚══════════════════════════════════════════════════════════════════════════╝\n";
+    std::cout << "\033[0m";
+    
     std::cout << "\n";
     
-    cli_.printSubHeader("Solving Algorithms");
-    std::cout << "  4. 🔍 Solve with BFS\n";
-    std::cout << "  5. 🚀 Solve with Dijkstra\n";
-    std::cout << "  6. ⚡ Solve with Both\n";
-    std::cout << "\n";
-    
-    cli_.printSubHeader("Analysis & Visualization");
-    std::cout << "  7. 📊 Analyze Current Path\n";
-    std::cout << "  8. 🔬 Compare Both Solutions\n";
-    std::cout << "  9. 🎬 Animated Visualization\n";
-    std::cout << " 10. 🖼️  Display Maze\n";
-    std::cout << "\n";
-    
-    cli_.printSubHeader("Other");
-    std::cout << " 11. ⚙️  Settings\n";
-    std::cout << "  0. 🚪 Exit\n";
-    
-    cli_.printSeparator();
-    
+    // Status bar at bottom
+    std::cout << "        \033[1;40m\033[1;37m"; // Black background, white text
     if (mazeLoaded_) {
-        cli_.printInfo("Status: Maze loaded ✓");
+        std::cout << " ✓ Maze Loaded";
+        if (bfsSolved_) std::cout << "  |  ✓ BFS Solved";
+        if (dijkstraSolved_) std::cout << "  |  ✓ Dijkstra Solved";
     } else {
-        cli_.printWarning("Status: No maze loaded");
+        std::cout << " ⚠ No Maze Loaded";
     }
+    // Pad to full width
+    for (int i = 0; i < 50; i++) std::cout << " ";
+    std::cout << "\033[0m\n";
     
-    std::cout << "\n";
+    std::cout << "\n        ";
 }
 
 int MazeSolverApp::getMenuChoice(int min, int max) {
@@ -445,6 +474,101 @@ void MazeSolverApp::handleQuickSolve() {
     cli_.waitForEnter();
 }
 
+void MazeSolverApp::handlePlayGame() {
+    cli_.clearScreen();
+    cli_.printHeader("🎮 Interactive Game Mode");
+    
+    std::cout << "\n";
+    
+    // Check if maze is loaded
+    if (!mazeLoaded_) {
+        cli_.printInfo("No maze loaded. Let's generate one!");
+        std::cout << "\n  Choose difficulty:\n";
+        std::cout << "    1. Easy (15x15)\n";
+        std::cout << "    2. Medium (25x25)\n";
+        std::cout << "    3. Hard (35x35)\n";
+        std::cout << "    0. Cancel\n";
+        
+        int difficulty = getMenuChoice(0, 3);
+        if (difficulty == 0) return;
+        
+        std::cout << "\n";
+        cli_.drawSpinner(0);
+        std::cout << " Generating game maze...\r";
+        std::cout.flush();
+        
+        switch(difficulty) {
+            case 1: {
+                MazeGenerator gen1(15, 15);
+                maze_ = gen1.generateEasy();
+                break;
+            }
+            case 2: {
+                MazeGenerator gen2(25, 25);
+                maze_ = gen2.generateMedium();
+                break;
+            }
+            case 3: {
+                MazeGenerator gen3(35, 35);
+                maze_ = gen3.generateHard();
+                break;
+            }
+        }
+        
+        mazeLoaded_ = true;
+        cli_.printSuccess("Game maze generated!");
+        sleep(1);
+    }
+    
+    // Instructions screen
+    cli_.clearScreen();
+    std::cout << "\n\033[1;36m";
+    std::cout << "        ╔══════════════════════════════════════════════════════════════╗\n";
+    std::cout << "        ║                    \033[1;33m🎮 GAME INSTRUCTIONS 🎮\033[1;36m                   ║\n";
+    std::cout << "        ╠══════════════════════════════════════════════════════════════╣\n";
+    std::cout << "\033[0m";
+    
+    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;32mObjective:\033[0m Navigate from your position \033[1;32m@\033[0m to goal \033[1;31mG\033[0m      \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;33mControls:\033[0m                                                   \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • Arrow Keys or WASD - Move                              \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • Q or ESC - Quit game                                   \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m  \033[1;35mTips:\033[0m                                                       \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • Fewer moves = Higher score                             \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • Faster time = Higher score                             \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • \033[90m█\033[0m = Walls (can't pass)                                 \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • \033[36m≈\033[0m = Water (passable)                                   \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m    • \033[33m▲\033[0m = Mountain (passable)                                \033[1;36m║\033[0m\n";
+    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
+    
+    std::cout << "\033[1;36m";
+    std::cout << "        ╚══════════════════════════════════════════════════════════════╝\n";
+    std::cout << "\033[0m\n";
+    
+    std::cout << "        ";
+    cli_.printInfo("Press Enter to start the game...");
+    cli_.waitForEnter();
+    
+    // Start the game!
+    GameMode game;
+    game.startGame(maze_);
+    
+    // Game finished, back to CLI
+    cli_.clearScreen();
+    if (game.hasWon()) {
+        cli_.printSuccess("🏆 Congratulations! You completed the maze!");
+        std::cout << "\n  Final Statistics:\n";
+        std::cout << "    Moves: " << game.getMoves() << "\n";
+        std::cout << "    Time: " << game.getElapsedTime() << " seconds\n";
+    } else {
+        cli_.printInfo("Game ended. Better luck next time!");
+    }
+    
+    cli_.waitForEnter();
+}
+
 void MazeSolverApp::handleSettings() {
     cli_.clearScreen();
     cli_.printHeader("Settings");
@@ -511,7 +635,7 @@ void MazeSolverApp::run() {
     
     while (true) {
         showMainMenu();
-        int choice = getMenuChoice(0, 11);
+        int choice = getMenuChoice(0, 12);
         
         switch(choice) {
             case 0:
@@ -559,6 +683,9 @@ void MazeSolverApp::run() {
                 }
                 break;
             case 11:
+                handlePlayGame();
+                break;
+            case 12:
                 handleSettings();
                 break;
         }

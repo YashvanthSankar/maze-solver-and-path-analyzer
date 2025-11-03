@@ -77,6 +77,10 @@ public:
     void enableColors();
     void disableColors();
     bool areColorsEnabled() const;
+    
+    // Optional ncurses support - controlled at compile time with USE_NCURSES
+    void initNcurses();
+    void endNcurses();
 };
 
 #endif

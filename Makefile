@@ -8,6 +8,7 @@
 # Compiler Configuration
 CXX = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -O2 -Iinclude
+LDFLAGS = -lncurses
 TARGET = maze_solver
 
 # Directories
@@ -26,7 +27,8 @@ SOURCES = $(SRC_DIR)/main.cpp \
           $(SRC_DIR)/PathAnalyzer.cpp \
           $(SRC_DIR)/Renderer.cpp \
           $(SRC_DIR)/MazeGenerator.cpp \
-          $(SRC_DIR)/CLIUtils.cpp
+          $(SRC_DIR)/CLIUtils.cpp \
+          $(SRC_DIR)/GameMode.cpp
 
 # Object Files (Auto-generated from sources, placed in build directory)
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
@@ -52,7 +54,7 @@ $(OBJ_DIR):
 # Link all object files to create the executable
 $(TARGET): $(OBJECTS)
 	@echo "Linking $(TARGET)..."
-	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS)
+	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
 
 # Compile individual source files to object files
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)

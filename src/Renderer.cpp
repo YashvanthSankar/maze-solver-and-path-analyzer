@@ -76,29 +76,44 @@ void Renderer::overlayMultiplePaths(const Path* paths, int pathCount) {
 void Renderer::render(const Maze& maze) {
     copyMazeToDisplay(maze);
     
-    std::cout << "+";
-    for (int i = 0; i < width_; i++) std::cout << "-";
-    std::cout << "+\n";
+    // Top border with better box-drawing characters
+    std::cout << "╔";
+    for (int i = 0; i < width_; i++) std::cout << "═";
+    std::cout << "╗\n";
     
     for (int i = 0; i < height_; i++) {
-        std::cout << "|";
+        std::cout << "║";
         for (int j = 0; j < width_; j++) {
             char cell = displayGrid_[i][j];
             if (useColors_) {
-                std::cout << getCellColor(cell) << cell << "\033[0m";
+                std::cout << getCellColor(cell);
+                // Use better symbols for each cell type
+                switch(cell) {
+                    case '#': std::cout << "█"; break;  // Full block for walls
+                    case 'S': std::cout << "S"; break;  // Start
+                    case 'G': std::cout << "G"; break;  // Goal
+                    case '.': std::cout << " "; break;  // Empty space
+                    case '*': std::cout << "●"; break;  // Path dot
+                    case '+': std::cout << "○"; break;  // Alternative path
+                    case '~': std::cout << "≈"; break;  // Water
+                    case '^': std::cout << "▲"; break;  // Mountain
+                    default: std::cout << cell;
+                }
+                std::cout << "\033[0m";
             } else {
                 std::cout << cell;
             }
         }
-        std::cout << "|\n";
+        std::cout << "║\n";
     }
     
-    std::cout << "+";
-    for (int i = 0; i < width_; i++) std::cout << "-";
-    std::cout << "+\n";
+    // Bottom border
+    std::cout << "╚";
+    for (int i = 0; i < width_; i++) std::cout << "═";
+    std::cout << "╝\n";
     
     if (useColors_) {
-        std::cout << "\n\033[2mLegend: \033[32mS\033[0m\033[2m=Start, \033[31mG\033[0m\033[2m=Goal, \033[90m#\033[0m\033[2m=Wall, .=Path, \033[36m~\033[0m\033[2m=Water, \033[33m^\033[0m\033[2m=Mountain\033[0m\n";
+        std::cout << "\n\033[2mLegend: \033[1;32mS\033[0m\033[2m=Start  \033[1;31mG\033[0m\033[2m=Goal  \033[90m█\033[0m\033[2m=Wall  \033[1;33m●\033[0m\033[2m=Path  \033[36m≈\033[0m\033[2m=Water  \033[33m▲\033[0m\033[2m=Mountain\033[0m\n";
     } else {
         std::cout << "\nLegend: S=Start, G=Goal, #=Wall, .=Path, ~=Water, ^=Mountain\n";
     }
@@ -147,27 +162,40 @@ void Renderer::renderAnimated(const Maze& maze, const Path& path, int delayMs) {
             }
         }
         
-        // Display
-        std::cout << "+";
-        for (int i = 0; i < width_; i++) std::cout << "-";
-        std::cout << "+\n";
+        // Display with better UTF-8 borders
+        std::cout << "╔";
+        for (int i = 0; i < width_; i++) std::cout << "═";
+        std::cout << "╗\n";
         
         for (int i = 0; i < height_; i++) {
-            std::cout << "|";
+            std::cout << "║";
             for (int j = 0; j < width_; j++) {
                 char cell = displayGrid_[i][j];
                 if (useColors_) {
-                    std::cout << getCellColor(cell) << cell << "\033[0m";
+                    std::cout << getCellColor(cell);
+                    // Use better symbols
+                    switch(cell) {
+                        case '#': std::cout << "█"; break;
+                        case 'S': std::cout << "S"; break;
+                        case 'G': std::cout << "G"; break;
+                        case '.': std::cout << " "; break;
+                        case '*': std::cout << "●"; break;
+                        case '+': std::cout << "○"; break;
+                        case '~': std::cout << "≈"; break;
+                        case '^': std::cout << "▲"; break;
+                        default: std::cout << cell;
+                    }
+                    std::cout << "\033[0m";
                 } else {
                     std::cout << cell;
                 }
             }
-            std::cout << "|\n";
+            std::cout << "║\n";
         }
         
-        std::cout << "+";
-        for (int i = 0; i < width_; i++) std::cout << "-";
-        std::cout << "+\n";
+        std::cout << "╚";
+        for (int i = 0; i < width_; i++) std::cout << "═";
+        std::cout << "╝\n";
         
         std::cout << "\nStep: " << step << "/" << path.getSize();
         cli_.drawProgressBar(step, path.getSize(), 40);
@@ -184,24 +212,47 @@ void Renderer::render(const Maze& maze, const Path& path) {
     copyMazeToDisplay(maze);
     overlayPath(path);
     
-    std::cout << "\n";
-    std::cout << "+";
-    for (int i = 0; i < width_; i++) std::cout << "-";
-    std::cout << "+\n";
+    // Top border with better box-drawing characters
+    std::cout << "╔";
+    for (int i = 0; i < width_; i++) std::cout << "═";
+    std::cout << "╗\n";
     
     for (int i = 0; i < height_; i++) {
-        std::cout << "|";
+        std::cout << "║";
         for (int j = 0; j < width_; j++) {
-            std::cout << displayGrid_[i][j];
+            char cell = displayGrid_[i][j];
+            if (useColors_) {
+                std::cout << getCellColor(cell);
+                // Use better symbols for each cell type
+                switch(cell) {
+                    case '#': std::cout << "█"; break;  // Full block for walls
+                    case 'S': std::cout << "S"; break;  // Start
+                    case 'G': std::cout << "G"; break;  // Goal
+                    case '.': std::cout << " "; break;  // Empty space
+                    case '*': std::cout << "●"; break;  // Path dot
+                    case '+': std::cout << "○"; break;  // Alternative path
+                    case '~': std::cout << "≈"; break;  // Water
+                    case '^': std::cout << "▲"; break;  // Mountain
+                    default: std::cout << cell;
+                }
+                std::cout << "\033[0m";
+            } else {
+                std::cout << cell;
+            }
         }
-        std::cout << "|\n";
+        std::cout << "║\n";
     }
     
-    std::cout << "+";
-    for (int i = 0; i < width_; i++) std::cout << "-";
-    std::cout << "+\n";
+    // Bottom border
+    std::cout << "╚";
+    for (int i = 0; i < width_; i++) std::cout << "═";
+    std::cout << "╝\n";
     
-    std::cout << "\nLegend: S=Start, G=Goal, #=Wall, *=Path, ~=Water, ^=Mountain\n";
+    if (useColors_) {
+        std::cout << "\n\033[2mLegend: \033[1;32mS\033[0m\033[2m=Start  \033[1;31mG\033[0m\033[2m=Goal  \033[90m█\033[0m\033[2m=Wall  \033[1;33m●\033[0m\033[2m=Path  \033[36m≈\033[0m\033[2m=Water  \033[33m▲\033[0m\033[2m=Mountain\033[0m\n";
+    } else {
+        std::cout << "\nLegend: S=Start, G=Goal, #=Wall, *=Path, ~=Water, ^=Mountain\n";
+    }
 }
 
 void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path& path2) {
@@ -211,23 +262,47 @@ void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path&
     overlayMultiplePaths(paths, 2);
     
     std::cout << "\n";
-    std::cout << "+";
-    for (int i = 0; i < width_; i++) std::cout << "-";
-    std::cout << "+\n";
+    std::cout << "\033[1;35m╔";
+    for (int i = 0; i < width_; i++) std::cout << "═";
+    std::cout << "╗\033[0m\n";
     
     for (int i = 0; i < height_; i++) {
-        std::cout << "|";
+        std::cout << "\033[1;35m║\033[0m";
         for (int j = 0; j < width_; j++) {
-            std::cout << displayGrid_[i][j];
+            char cell = displayGrid_[i][j];
+            if (useColors_) {
+                std::cout << getCellColor(cell);
+            }
+            
+            // Use UTF-8 symbols for better visualization
+            switch(cell) {
+                case '#': std::cout << "█"; break;
+                case 'S': std::cout << "S"; break;
+                case 'G': std::cout << "G"; break;
+                case '.': std::cout << " "; break;
+                case '*': std::cout << "●"; break;  // BFS path
+                case '+': std::cout << "○"; break;  // Dijkstra path
+                case '~': std::cout << "≈"; break;
+                case '^': std::cout << "▲"; break;
+                default: std::cout << cell;
+            }
+            
+            if (useColors_) {
+                std::cout << "\033[0m";
+            }
         }
-        std::cout << "|\n";
+        std::cout << "\033[1;35m║\033[0m\n";
     }
     
-    std::cout << "+";
-    for (int i = 0; i < width_; i++) std::cout << "-";
-    std::cout << "+\n";
+    std::cout << "\033[1;35m╚";
+    for (int i = 0; i < width_; i++) std::cout << "═";
+    std::cout << "╝\033[0m\n";
     
-    std::cout << "\nLegend: S=Start, G=Goal, #=Wall, *=Path1(BFS), +=Path2(Dijkstra)\n";
+    if (useColors_) {
+        std::cout << "\n\033[2mLegend: \033[1;32mS\033[0m\033[2m=Start  \033[1;31mG\033[0m\033[2m=Goal  \033[90m█\033[0m\033[2m=Wall  \033[1;33m●\033[0m\033[2m=BFS  \033[1;35m○\033[0m\033[2m=Dijkstra  \033[36m≈\033[0m\033[2m=Water  \033[33m▲\033[0m\033[2m=Mountain\033[0m\n";
+    } else {
+        std::cout << "\nLegend: S=Start, G=Goal, #=Wall, *=BFS, +=Dijkstra, ~=Water, ^=Mountain\n";
+    }
 }
 
 bool Renderer::saveToFile(const char* filename) const {

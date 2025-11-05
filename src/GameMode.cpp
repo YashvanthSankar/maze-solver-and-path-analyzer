@@ -132,14 +132,19 @@ void GameMode::drawMaze() {
     int height = maze_->getHeight();
     int width = maze_->getWidth();
     
-    // Center the maze on screen
+    // Make cells wider for better visibility (each cell is printed cellW characters)
+    const int cellW = 3;
+
+    // Center the maze on screen (account for doubled cell width)
     int startY = 3;
-    int startX = (COLS - width - 2) / 2;
+    int startX = (COLS - (width * cellW) - 2) / 2;
     
     // Draw top border with beautiful UTF-8 box-drawing
     attron(COLOR_PAIR(3) | A_BOLD);
     mvprintw(startY, startX, "╔");
-    for (int i = 0; i < width; i++) addstr("═");
+    for (int i = 0; i < width; i++) {
+        for (int k = 0; k < cellW; k++) addstr("═");
+    }
     addstr("╗");
     attroff(COLOR_PAIR(3) | A_BOLD);
     
@@ -156,13 +161,13 @@ void GameMode::drawMaze() {
             // Player position (highest priority)
             if (currentPos == playerPos_) {
                 attron(COLOR_PAIR(1) | A_BOLD);
-                addstr("●");  // Filled circle for player
+                for (int k = 0; k < cellW; ++k) addstr("●");  // Filled circle for player (double width)
                 attroff(COLOR_PAIR(1) | A_BOLD);
             }
             // Goal position
             else if (currentPos == goalPos_) {
                 attron(COLOR_PAIR(2) | A_BOLD);
-                addstr("★");  // Star for goal
+                for (int k = 0; k < cellW; ++k) addstr("★");  // Star for goal
                 attroff(COLOR_PAIR(2) | A_BOLD);
             }
             // Terrain
@@ -170,27 +175,27 @@ void GameMode::drawMaze() {
                 switch(cell) {
                     case '#':
                         attron(COLOR_PAIR(3));
-                        addstr("█");  // Full block for walls
+                        for (int k = 0; k < cellW; ++k) addstr("█");  // Full block for walls
                         attroff(COLOR_PAIR(3));
                         break;
                     case '~':
                         attron(COLOR_PAIR(5));
-                        addstr("≈");  // Water waves
+                        for (int k = 0; k < cellW; ++k) addstr("≈");  // Water waves
                         attroff(COLOR_PAIR(5));
                         break;
                     case '^':
                         attron(COLOR_PAIR(6));
-                        addstr("▲");  // Mountain triangle
+                        for (int k = 0; k < cellW; ++k) addstr("▲");  // Mountain triangle
                         attroff(COLOR_PAIR(6));
                         break;
                     case '.':
                     case 'S':
                         attron(COLOR_PAIR(4));
-                        addstr("·");  // Middle dot for path
+                        for (int k = 0; k < cellW; ++k) addstr("·");  // Middle dot for path
                         attroff(COLOR_PAIR(4));
                         break;
                     default:
-                        addstr(" ");
+                        for (int k = 0; k < cellW; ++k) addstr(" ");
                 }
             }
         }
@@ -200,10 +205,12 @@ void GameMode::drawMaze() {
         attroff(COLOR_PAIR(3) | A_BOLD);
     }
     
-    // Draw bottom border
+    // Draw bottom border (account for cell width)
     attron(COLOR_PAIR(3) | A_BOLD);
     mvprintw(startY + height + 1, startX, "╚");
-    for (int i = 0; i < width; i++) addstr("═");
+    for (int i = 0; i < width; i++) {
+        for (int k = 0; k < cellW; k++) addstr("═");
+    }
     addstr("╝");
     attroff(COLOR_PAIR(3) | A_BOLD);
 }

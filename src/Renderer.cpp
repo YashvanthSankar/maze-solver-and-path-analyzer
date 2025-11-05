@@ -76,9 +76,14 @@ void Renderer::overlayMultiplePaths(const Path* paths, int pathCount) {
 void Renderer::render(const Maze& maze) {
     copyMazeToDisplay(maze);
     
+    // Make cells wider for better visibility (each cell is printed cellW characters)
+    const int cellW = 3;  // Width multiplier for each cell
+    
     // Top border with better box-drawing characters
     std::cout << "╔";
-    for (int i = 0; i < width_; i++) std::cout << "═";
+    for (int i = 0; i < width_; i++) {
+        for (int k = 0; k < cellW; k++) std::cout << "═";
+    }
     std::cout << "╗\n";
     
     for (int i = 0; i < height_; i++) {
@@ -89,19 +94,36 @@ void Renderer::render(const Maze& maze) {
                 std::cout << getCellColor(cell);
                 // Use better symbols for each cell type
                 switch(cell) {
-                    case '#': std::cout << "█"; break;  // Full block for walls
-                    case 'S': std::cout << "S"; break;  // Start
-                    case 'G': std::cout << "G"; break;  // Goal
-                    case '.': std::cout << " "; break;  // Empty space
-                    case '*': std::cout << "●"; break;  // Path dot
-                    case '+': std::cout << "○"; break;  // Alternative path
-                    case '~': std::cout << "≈"; break;  // Water
-                    case '^': std::cout << "▲"; break;  // Mountain
-                    default: std::cout << cell;
+                    case '#': 
+                        for (int k = 0; k < cellW; k++) std::cout << "█"; 
+                        break;  // Full block for walls
+                    case 'S': 
+                        for (int k = 0; k < cellW; k++) std::cout << "S"; 
+                        break;  // Start
+                    case 'G': 
+                        for (int k = 0; k < cellW; k++) std::cout << "G"; 
+                        break;  // Goal
+                    case '.': 
+                        for (int k = 0; k < cellW; k++) std::cout << " "; 
+                        break;  // Empty space
+                    case '*': 
+                        for (int k = 0; k < cellW; k++) std::cout << "●"; 
+                        break;  // Path dot
+                    case '+': 
+                        for (int k = 0; k < cellW; k++) std::cout << "○"; 
+                        break;  // Alternative path
+                    case '~': 
+                        for (int k = 0; k < cellW; k++) std::cout << "≈"; 
+                        break;  // Water
+                    case '^': 
+                        for (int k = 0; k < cellW; k++) std::cout << "▲"; 
+                        break;  // Mountain
+                    default: 
+                        for (int k = 0; k < cellW; k++) std::cout << cell;
                 }
                 std::cout << "\033[0m";
             } else {
-                std::cout << cell;
+                for (int k = 0; k < cellW; k++) std::cout << cell;
             }
         }
         std::cout << "║\n";
@@ -145,6 +167,9 @@ void Renderer::renderAnimated(const Maze& maze, const Path& path, int delayMs) {
     cli_.clearScreen();
     cli_.printHeader("Animated Path Discovery");
     
+    // Make cells wider for better visibility (each cell is printed cellW characters)
+    const int cellW = 3;  // Width multiplier for each cell
+    
     for (int step = 0; step <= path.getSize(); step++) {
         cli_.moveCursor(3, 1);
         
@@ -164,7 +189,9 @@ void Renderer::renderAnimated(const Maze& maze, const Path& path, int delayMs) {
         
         // Display with better UTF-8 borders
         std::cout << "╔";
-        for (int i = 0; i < width_; i++) std::cout << "═";
+        for (int i = 0; i < width_; i++) {
+            for (int k = 0; k < cellW; k++) std::cout << "═";
+        }
         std::cout << "╗\n";
         
         for (int i = 0; i < height_; i++) {
@@ -175,26 +202,45 @@ void Renderer::renderAnimated(const Maze& maze, const Path& path, int delayMs) {
                     std::cout << getCellColor(cell);
                     // Use better symbols
                     switch(cell) {
-                        case '#': std::cout << "█"; break;
-                        case 'S': std::cout << "S"; break;
-                        case 'G': std::cout << "G"; break;
-                        case '.': std::cout << " "; break;
-                        case '*': std::cout << "●"; break;
-                        case '+': std::cout << "○"; break;
-                        case '~': std::cout << "≈"; break;
-                        case '^': std::cout << "▲"; break;
-                        default: std::cout << cell;
+                        case '#': 
+                            for (int k = 0; k < cellW; k++) std::cout << "█"; 
+                            break;
+                        case 'S': 
+                            for (int k = 0; k < cellW; k++) std::cout << "S"; 
+                            break;
+                        case 'G': 
+                            for (int k = 0; k < cellW; k++) std::cout << "G"; 
+                            break;
+                        case '.': 
+                            for (int k = 0; k < cellW; k++) std::cout << " "; 
+                            break;
+                        case '*': 
+                            for (int k = 0; k < cellW; k++) std::cout << "●"; 
+                            break;
+                        case '+': 
+                            for (int k = 0; k < cellW; k++) std::cout << "○"; 
+                            break;
+                        case '~': 
+                            for (int k = 0; k < cellW; k++) std::cout << "≈"; 
+                            break;
+                        case '^': 
+                            for (int k = 0; k < cellW; k++) std::cout << "▲"; 
+                            break;
+                        default: 
+                            for (int k = 0; k < cellW; k++) std::cout << cell;
                     }
                     std::cout << "\033[0m";
                 } else {
-                    std::cout << cell;
+                    for (int k = 0; k < cellW; k++) std::cout << cell;
                 }
             }
             std::cout << "║\n";
         }
         
         std::cout << "╚";
-        for (int i = 0; i < width_; i++) std::cout << "═";
+        for (int i = 0; i < width_; i++) {
+            for (int k = 0; k < cellW; k++) std::cout << "═";
+        }
         std::cout << "╝\n";
         
         std::cout << "\nStep: " << step << "/" << path.getSize();
@@ -212,9 +258,14 @@ void Renderer::render(const Maze& maze, const Path& path) {
     copyMazeToDisplay(maze);
     overlayPath(path);
     
+    // Make cells wider for better visibility (each cell is printed cellW characters)
+    const int cellW = 3;  // Width multiplier for each cell
+    
     // Top border with better box-drawing characters
     std::cout << "╔";
-    for (int i = 0; i < width_; i++) std::cout << "═";
+    for (int i = 0; i < width_; i++) {
+        for (int k = 0; k < cellW; k++) std::cout << "═";
+    }
     std::cout << "╗\n";
     
     for (int i = 0; i < height_; i++) {
@@ -225,19 +276,36 @@ void Renderer::render(const Maze& maze, const Path& path) {
                 std::cout << getCellColor(cell);
                 // Use better symbols for each cell type
                 switch(cell) {
-                    case '#': std::cout << "█"; break;  // Full block for walls
-                    case 'S': std::cout << "S"; break;  // Start
-                    case 'G': std::cout << "G"; break;  // Goal
-                    case '.': std::cout << " "; break;  // Empty space
-                    case '*': std::cout << "●"; break;  // Path dot
-                    case '+': std::cout << "○"; break;  // Alternative path
-                    case '~': std::cout << "≈"; break;  // Water
-                    case '^': std::cout << "▲"; break;  // Mountain
-                    default: std::cout << cell;
+                    case '#': 
+                        for (int k = 0; k < cellW; k++) std::cout << "█"; 
+                        break;  // Full block for walls
+                    case 'S': 
+                        for (int k = 0; k < cellW; k++) std::cout << "S"; 
+                        break;  // Start
+                    case 'G': 
+                        for (int k = 0; k < cellW; k++) std::cout << "G"; 
+                        break;  // Goal
+                    case '.': 
+                        for (int k = 0; k < cellW; k++) std::cout << " "; 
+                        break;  // Empty space
+                    case '*': 
+                        for (int k = 0; k < cellW; k++) std::cout << "●"; 
+                        break;  // Path dot
+                    case '+': 
+                        for (int k = 0; k < cellW; k++) std::cout << "○"; 
+                        break;  // Alternative path
+                    case '~': 
+                        for (int k = 0; k < cellW; k++) std::cout << "≈"; 
+                        break;  // Water
+                    case '^': 
+                        for (int k = 0; k < cellW; k++) std::cout << "▲"; 
+                        break;  // Mountain
+                    default: 
+                        for (int k = 0; k < cellW; k++) std::cout << cell;
                 }
                 std::cout << "\033[0m";
             } else {
-                std::cout << cell;
+                for (int k = 0; k < cellW; k++) std::cout << cell;
             }
         }
         std::cout << "║\n";
@@ -245,7 +313,9 @@ void Renderer::render(const Maze& maze, const Path& path) {
     
     // Bottom border
     std::cout << "╚";
-    for (int i = 0; i < width_; i++) std::cout << "═";
+    for (int i = 0; i < width_; i++) {
+        for (int k = 0; k < cellW; k++) std::cout << "═";
+    }
     std::cout << "╝\n";
     
     if (useColors_) {
@@ -261,9 +331,14 @@ void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path&
     Path paths[2] = {path1, path2};
     overlayMultiplePaths(paths, 2);
     
+    // Make cells wider for better visibility (each cell is printed cellW characters)
+    const int cellW = 3;  // Width multiplier for each cell
+    
     std::cout << "\n";
     std::cout << "\033[1;35m╔";
-    for (int i = 0; i < width_; i++) std::cout << "═";
+    for (int i = 0; i < width_; i++) {
+        for (int k = 0; k < cellW; k++) std::cout << "═";
+    }
     std::cout << "╗\033[0m\n";
     
     for (int i = 0; i < height_; i++) {
@@ -276,15 +351,32 @@ void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path&
             
             // Use UTF-8 symbols for better visualization
             switch(cell) {
-                case '#': std::cout << "█"; break;
-                case 'S': std::cout << "S"; break;
-                case 'G': std::cout << "G"; break;
-                case '.': std::cout << " "; break;
-                case '*': std::cout << "●"; break;  // BFS path
-                case '+': std::cout << "○"; break;  // Dijkstra path
-                case '~': std::cout << "≈"; break;
-                case '^': std::cout << "▲"; break;
-                default: std::cout << cell;
+                case '#': 
+                    for (int k = 0; k < cellW; k++) std::cout << "█"; 
+                    break;
+                case 'S': 
+                    for (int k = 0; k < cellW; k++) std::cout << "S"; 
+                    break;
+                case 'G': 
+                    for (int k = 0; k < cellW; k++) std::cout << "G"; 
+                    break;
+                case '.': 
+                    for (int k = 0; k < cellW; k++) std::cout << " "; 
+                    break;
+                case '*': 
+                    for (int k = 0; k < cellW; k++) std::cout << "●"; 
+                    break;  // BFS path
+                case '+': 
+                    for (int k = 0; k < cellW; k++) std::cout << "○"; 
+                    break;  // Dijkstra path
+                case '~': 
+                    for (int k = 0; k < cellW; k++) std::cout << "≈"; 
+                    break;
+                case '^': 
+                    for (int k = 0; k < cellW; k++) std::cout << "▲"; 
+                    break;
+                default: 
+                    for (int k = 0; k < cellW; k++) std::cout << cell;
             }
             
             if (useColors_) {
@@ -295,7 +387,9 @@ void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path&
     }
     
     std::cout << "\033[1;35m╚";
-    for (int i = 0; i < width_; i++) std::cout << "═";
+    for (int i = 0; i < width_; i++) {
+        for (int k = 0; k < cellW; k++) std::cout << "═";
+    }
     std::cout << "╝\033[0m\n";
     
     if (useColors_) {

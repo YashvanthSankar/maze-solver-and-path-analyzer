@@ -224,13 +224,14 @@ void GameMode::drawStatusBar() {
     mvprintw(statusY + 1, 2, "║");
     attroff(A_BOLD | COLOR_PAIR(4));
     
-    // Game title
+    // Game title (no emojis for alignment) - "MAZE RUNNER - INTERACTIVE MODE" is 31 chars
+    // Box width is 64, so (64-31)/2 = 16 left + 17 right
     attron(A_BOLD | COLOR_PAIR(2));
-    mvprintw(statusY + 1, 16, "🎮  MAZE RUNNER - INTERACTIVE MODE  🎮");
+    mvprintw(statusY + 1, 18, "MAZE RUNNER - INTERACTIVE MODE");
     attroff(A_BOLD | COLOR_PAIR(2));
     
     attron(A_BOLD | COLOR_PAIR(4));
-    mvprintw(statusY + 1, 66, "║");
+    mvprintw(statusY + 1, 67, "║");
     mvprintw(statusY + 2, 2, "╚════════════════════════════════════════════════════════════════╝");
     attroff(A_BOLD | COLOR_PAIR(4));
     
@@ -291,21 +292,22 @@ void GameMode::showVictoryScreen() {
     int centerY = LINES / 2 - 5;
     int centerX = COLS / 2;
     
-    // Victory banner with beautiful UTF-8
+    // Victory banner with beautiful UTF-8 - "CONGRATULATIONS!" is 16 chars, box is 38 wide
+    // (38-16)/2 = 11 left + 11 right
     attron(COLOR_PAIR(7) | A_BOLD | A_BLINK);
-    mvprintw(centerY, centerX - 20, "╔══════════════════════════════════════╗");
-    mvprintw(centerY + 1, centerX - 20, "║                                      ║");
-    mvprintw(centerY + 2, centerX - 20, "║");
+    mvprintw(centerY, centerX - 19, "╔══════════════════════════════════════╗");
+    mvprintw(centerY + 1, centerX - 19, "║                                      ║");
+    mvprintw(centerY + 2, centerX - 19, "║");
     attroff(COLOR_PAIR(7) | A_BOLD | A_BLINK);
     
     attron(COLOR_PAIR(2) | A_BOLD);
-    mvprintw(centerY + 2, centerX - 13, "🏆 CONGRATULATIONS! 🏆");
+    mvprintw(centerY + 2, centerX - 8, "CONGRATULATIONS!");
     attroff(COLOR_PAIR(2) | A_BOLD);
     
     attron(COLOR_PAIR(7) | A_BOLD | A_BLINK);
-    mvprintw(centerY + 2, centerX + 18, "║");
-    mvprintw(centerY + 3, centerX - 20, "║                                      ║");
-    mvprintw(centerY + 4, centerX - 20, "╚══════════════════════════════════════╝");
+    mvprintw(centerY + 2, centerX + 19, "║");
+    mvprintw(centerY + 3, centerX - 19, "║                                      ║");
+    mvprintw(centerY + 4, centerX - 19, "╚══════════════════════════════════════╝");
     attroff(COLOR_PAIR(7) | A_BOLD | A_BLINK);
     
     // Stats

@@ -77,41 +77,91 @@ void MazeSolverApp::showMainMenu() {
     // Main menu box with original beautiful design
     std::cout << "\033[1;36m"; // Cyan
     std::cout << "        ╔══════════════════════════════════════════════════════════════════════════╗\n";
-    std::cout << "        ║                            \033[1;33mMAIN MENU\033[1;36m                                 ║\n";
+    // MAIN MENU is 9 chars, border is 74 wide, so (74-9)/2 = 32 left + 33 right
+    std::cout << "        ║                                \033[1;33mMAIN MENU\033[1;36m                                 ║\n";
     std::cout << "        ╠══════════════════════════════════════════════════════════════════════════╣\n";
     std::cout << "\033[0m"; // Reset
     
+    // Maze menu content printed through a padding helper so the right border stays aligned
+    const int BOX_WIDTH = 74; // Total width of the border (counting ═ characters)
+    
+    // helper to calculate display width of a string (handling ANSI codes)
+    auto getDisplayWidth = [](const std::string &s){
+        int width = 0;
+        for (size_t i = 0; i < s.size(); ++i) {
+            unsigned char ch = s[i];
+            
+            // Skip ANSI escape sequences
+            if (ch == '\033') {
+                size_t j = i + 1;
+                if (j < s.size() && s[j] == '[') {
+                    j++;
+                    while (j < s.size() && s[j] != 'm') j++;
+                    if (j < s.size()) i = j;
+                    continue;
+                }
+            }
+            
+            // Count regular ASCII characters (no emojis now)
+            if ((ch & 0x80) == 0) {
+                width += 1;
+            } else if ((ch & 0xE0) == 0xC0) {
+                width += 1;
+                i += 1;
+            } else if ((ch & 0xF0) == 0xE0) {
+                width += 1;
+                i += 2;
+            } else if ((ch & 0xF8) == 0xF0) {
+                width += 1;
+                i += 3;
+            }
+        }
+        return width;
+    };
+
+    auto printBoxLine = [&](const std::string &content){
+        int visibleWidth = getDisplayWidth(content);
+        // Total padding = BOX_WIDTH - visibleWidth
+        int padTotal = BOX_WIDTH - visibleWidth;
+        if (padTotal < 0) padTotal = 0;
+        
+        std::cout << "\033[1;36m        ║\033[0m" << content;
+        for (int i = 0; i < padTotal; ++i) std::cout << ' ';
+        std::cout << "\033[1;36m║\033[0m\n";
+    };
+
+
     // Maze Operations Section
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m⚡ Maze Operations\033[0m                                                     \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m1.\033[0m 📁 Load Maze from File                                            \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m2.\033[0m ✨ Generate New Maze \033[1;32m(Instant!)\033[0m                                  \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m3.\033[0m 🎯 Quick Solve \033[1;35m(Generate + Solve)\033[0m                                \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
-    
+    printBoxLine("\033[1;33m>> Maze Operations\033[0m");
+    printBoxLine("     \033[1;37m1.\033[0m Load Maze from File");
+    printBoxLine("     \033[1;37m2.\033[0m Generate New Maze \033[1;32m(Instant!)\033[0m");
+    printBoxLine("     \033[1;37m3.\033[0m Quick Solve \033[1;35m(Generate + Solve)\033[0m");
+    printBoxLine("");
+
     // Solving Algorithms Section
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m🧠 Solving Algorithms\033[0m                                                 \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m4.\033[0m 🔍 Solve with BFS                                                \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m5.\033[0m 🚀 Solve with Dijkstra                                           \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m6.\033[0m ⚡ Solve with Both Algorithms                                     \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
-    
+    printBoxLine("\033[1;33m>> Solving Algorithms\033[0m");
+    printBoxLine("     \033[1;37m4.\033[0m Solve with BFS");
+    printBoxLine("     \033[1;37m5.\033[0m Solve with Dijkstra");
+    printBoxLine("     \033[1;37m6.\033[0m Solve with Both Algorithms");
+    printBoxLine("");
+
     // Analysis & Visualization Section
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m📈 Analysis & Visualization\033[0m                                          \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m7.\033[0m 📊 Analyze Current Path                                          \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m8.\033[0m 🔬 Compare Both Solutions                                        \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m9.\033[0m 🎬 Animated Visualization                                        \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    \033[1;37m10.\033[0m 🖼️  Display Maze                                                 \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
-    
+    printBoxLine("\033[1;33m>> Analysis & Visualization\033[0m");
+    printBoxLine("     \033[1;37m7.\033[0m Analyze Current Path");
+    printBoxLine("     \033[1;37m8.\033[0m Compare Both Solutions");
+    printBoxLine("     \033[1;37m9.\033[0m Animated Visualization");
+    printBoxLine("    \033[1;37m10.\033[0m Display Maze");
+    printBoxLine("");
+
     // Interactive Game Section
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m🎮 Interactive Mode\033[0m                                                   \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    \033[1;37m11.\033[0m 🎮 Play Maze Game \033[1;32m(Arrow Keys!)\033[0m                                \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                                          \033[1;36m║\033[0m\n";
-    
+    printBoxLine("\033[1;33m>> Interactive Mode\033[0m");
+    printBoxLine("    \033[1;37m11.\033[0m Play Maze Game \033[1;32m(Arrow Keys!)\033[0m");
+    printBoxLine("");
+
     // Other Section
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;33m⚙️  Other Options\033[0m                                                     \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    \033[1;37m12.\033[0m ⚙️  Settings                                                     \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m     \033[1;37m0.\033[0m 🚪 Exit                                                          \033[1;36m║\033[0m\n";
+    printBoxLine("\033[1;33m>> Other Options\033[0m");
+    printBoxLine("    \033[1;37m12.\033[0m Settings");
+    printBoxLine("     \033[1;37m0.\033[0m Exit");
     
     std::cout << "\033[1;36m";
     std::cout << "        ╚══════════════════════════════════════════════════════════════════════════╝\n";
@@ -476,7 +526,7 @@ void MazeSolverApp::handleQuickSolve() {
 
 void MazeSolverApp::handlePlayGame() {
     cli_.clearScreen();
-    cli_.printHeader("🎮 Interactive Game Mode");
+    cli_.printHeader(">> Interactive Game Mode");
     
     std::cout << "\n";
     
@@ -522,26 +572,83 @@ void MazeSolverApp::handlePlayGame() {
     
     // Instructions screen
     cli_.clearScreen();
+    
+    const int INST_BOX_WIDTH = 62; // Width of instruction box border
+    
+    // Helper to print a line in the instructions box with proper padding
+    auto printInstLine = [](const std::string &content, int boxWidth) {
+        // Display width calculation accounting for wide Unicode characters
+        int visibleWidth = 0;
+        for (size_t i = 0; i < content.size(); ++i) {
+            if (content[i] == '\033') {
+                // Skip ANSI codes
+                size_t j = i + 1;
+                if (j < content.size() && content[j] == '[') {
+                    j++;
+                    while (j < content.size() && content[j] != 'm') j++;
+                    if (j < content.size()) i = j;
+                    continue;
+                }
+            }
+            
+            unsigned char c = static_cast<unsigned char>(content[i]);
+            // Check for UTF-8 multi-byte sequences
+            if ((c & 0x80) != 0) {
+                // Capture the full UTF-8 character to check if it's wide
+                std::string utf8char;
+                utf8char += content[i];
+                int bytesInChar = 0;
+                
+                if ((c & 0xE0) == 0xC0) bytesInChar = 1;      // 2-byte char
+                else if ((c & 0xF0) == 0xE0) bytesInChar = 2; // 3-byte char
+                else if ((c & 0xF8) == 0xF0) bytesInChar = 3; // 4-byte char
+                
+                for (int j = 0; j < bytesInChar && (i + 1) < content.size(); j++) {
+                    utf8char += content[++i];
+                }
+                
+                // Check if this is a known wide character (displays as 2 columns)
+                // Block elements (█), wave (≈), triangle (▲) are wide
+                if (utf8char == "█" || utf8char == "≈" || utf8char == "▲") {
+                    visibleWidth += 2;
+                } else {
+                    // Other UTF-8 chars like bullet (•) display as 1 column
+                    visibleWidth += 1;
+                }
+            } else {
+                visibleWidth++;
+            }
+        }
+        
+        int padTotal = boxWidth - visibleWidth;
+        if (padTotal < 0) padTotal = 0;
+        
+        std::cout << "\033[1;36m        ║\033[0m" << content;
+        for (int i = 0; i < padTotal; ++i) std::cout << ' ';
+        std::cout << "\033[1;36m║\033[0m\n";
+    };
+    
     std::cout << "\n\033[1;36m";
     std::cout << "        ╔══════════════════════════════════════════════════════════════╗\n";
-    std::cout << "        ║                    \033[1;33m🎮 GAME INSTRUCTIONS 🎮\033[1;36m                   ║\n";
+    // "GAME INSTRUCTIONS" is 17 chars, (62-17)/2 = 22 left + 23 right
+    std::cout << "        ║                      \033[1;33mGAME INSTRUCTIONS\033[1;36m                       ║\n";
     std::cout << "        ╠══════════════════════════════════════════════════════════════╣\n";
     std::cout << "\033[0m";
     
-    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;32mObjective:\033[0m Navigate from your position \033[1;32m@\033[0m to goal \033[1;31mG\033[0m      \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;33mControls:\033[0m                                                   \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • Arrow Keys or WASD - Move                              \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • Q or ESC - Quit game                                   \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m  \033[1;35mTips:\033[0m                                                       \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • Fewer moves = Higher score                             \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • Faster time = Higher score                             \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • \033[90m█\033[0m = Walls (can't pass)                                 \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • \033[36m≈\033[0m = Water (passable)                                   \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m    • \033[33m▲\033[0m = Mountain (passable)                                \033[1;36m║\033[0m\n";
-    std::cout << "\033[1;36m        ║\033[0m                                                              \033[1;36m║\033[0m\n";
+    printInstLine("", INST_BOX_WIDTH);
+    printInstLine("  \033[1;32mObjective:\033[0m Navigate from your position \033[1;32m@\033[0m to goal \033[1;31mG\033[0m          ", INST_BOX_WIDTH);
+    printInstLine("", INST_BOX_WIDTH);
+    printInstLine("  \033[1;33mControls:\033[0m                                                   ", INST_BOX_WIDTH);
+    printInstLine("    • Arrow Keys or WASD - Move                              ", INST_BOX_WIDTH);
+    printInstLine("    • Q or ESC - Quit game                                   ", INST_BOX_WIDTH);
+    printInstLine("", INST_BOX_WIDTH);
+    printInstLine("  \033[1;35mTips:\033[0m                                                       ", INST_BOX_WIDTH);
+    printInstLine("    • Fewer moves = Higher score                             ", INST_BOX_WIDTH);
+    printInstLine("    • Faster time = Higher score                             ", INST_BOX_WIDTH);
+    printInstLine("    • \033[90m█\033[0m = Walls (can't pass)                                  ", INST_BOX_WIDTH);
+    printInstLine("    • \033[36m≈\033[0m = Water (passable)                                    ", INST_BOX_WIDTH);
+    printInstLine("    • \033[33m▲\033[0m = Mountain (passable)                                 ", INST_BOX_WIDTH);
+    printInstLine("", INST_BOX_WIDTH);
     
     std::cout << "\033[1;36m";
     std::cout << "        ╚══════════════════════════════════════════════════════════════╝\n";

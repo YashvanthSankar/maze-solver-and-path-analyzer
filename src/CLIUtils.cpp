@@ -1,6 +1,7 @@
 #include "CLIUtils.h"
 #include <cstring>
 #include <unistd.h>
+#include <limits>
 
 // ANSI color codes
 const char* CLIUtils::RESET = "\033[0m";
@@ -26,28 +27,6 @@ const char* CLIUtils::BG_CYAN = "\033[46m";
 const char* CLIUtils::BG_WHITE = "\033[47m";
 
 CLIUtils::CLIUtils() : colorsEnabled_(true) {}
-
-// Optional ncurses initialization (no-op unless USE_NCURSES is defined)
-void CLIUtils::initNcurses() {
-#ifdef USE_NCURSES
-    initscr();
-    cbreak();
-    noecho();
-    keypad(stdscr, TRUE);
-    nodelay(stdscr, FALSE);
-    curs_set(0);
-#else
-    // ncurses not enabled; no-op
-#endif
-}
-
-void CLIUtils::endNcurses() {
-#ifdef USE_NCURSES
-    endwin();
-#else
-    // ncurses not enabled; no-op
-#endif
-}
 
 void CLIUtils::clearScreen() const {
     std::cout << "\033[2J\033[H";
@@ -183,8 +162,8 @@ void CLIUtils::waitForEnter() const {
     } else {
         std::cout << "\nPress Enter to continue...";
     }
-    std::cin.ignore(10000, '\n');
-    std::cin.get();
+    // Clear any leftover input, then wait for Enter
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
 int CLIUtils::getNumberInput(const char* prompt, int min, int max) const {

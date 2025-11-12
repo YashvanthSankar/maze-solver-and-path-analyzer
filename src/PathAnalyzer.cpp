@@ -1,6 +1,5 @@
 #include "PathAnalyzer.h"
 
-// PathMetrics implementation
 PathMetrics::PathMetrics() : totalLength_(0), numberOfTurns_(0), directionChanges_(0),
                              straightness_(0.0), avgStepCost_(0.0), narrowPassages_(0) {}
 
@@ -63,7 +62,6 @@ void PathMetrics::display() const {
     std::cout << "=============================\n";
 }
 
-// Compare based on total length (shorter is better)
 bool PathMetrics::operator>(const PathMetrics& other) const {
     return totalLength_ > other.totalLength_;
 }
@@ -79,7 +77,6 @@ std::ostream& operator<<(std::ostream& os, const PathMetrics& m) {
     return os;
 }
 
-// PathAnalyzer implementation
 PathAnalyzer::PathAnalyzer() {}
 
 int PathAnalyzer::getDirection(const Point& from, const Point& to) const {
@@ -87,11 +84,10 @@ int PathAnalyzer::getDirection(const Point& from, const Point& to) const {
     int dx = diff.getX();
     int dy = diff.getY();
     
-    // 0=North, 1=East, 2=South, 3=West
-    if (dy < 0) return 0;      // North
-    if (dx > 0) return 1;      // East
-    if (dy > 0) return 2;      // South
-    if (dx < 0) return 3;      // West
+    if (dy < 0) return 0; 
+    if (dx > 0) return 1;
+    if (dy > 0) return 2; 
+    if (dx < 0) return 3; 
     return -1;
 }
 
@@ -153,12 +149,10 @@ int PathAnalyzer::countNarrowPassages(const Path& path, const Maze& maze) const 
     for (int i = 0; i < path.getSize(); i++) {
         Point p = path[i];
         
-        // Count walkable neighbors
         Point neighbors[4];
         int neighborCount;
         maze.getNeighbors(p, neighbors, neighborCount);
         
-        // If only 2 or fewer walkable neighbors, it's a narrow passage
         if (neighborCount <= 2) {
             narrowCount++;
         }

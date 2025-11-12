@@ -1,6 +1,5 @@
 #include "BFSSolver.h"
 
-// PointQueue implementation
 PointQueue::PointQueue() : front_(0), rear_(0), capacity_(100), size_(0) {
     data_ = new Point[capacity_];
 }
@@ -52,7 +51,6 @@ int PointQueue::getSize() const {
     return size_;
 }
 
-// BFSSolver implementation
 BFSSolver::BFSSolver() : parent_(nullptr), visited_(nullptr), maxNodes_(0) {}
 
 BFSSolver::~BFSSolver() {
@@ -96,7 +94,6 @@ Path BFSSolver::reconstructPath(const Point& start, const Point& goal, int width
     Path path;
     Point current = goal;
     
-    // Build path backwards
     Point* reversePath = new Point[maxNodes_];
     int pathLength = 0;
     
@@ -105,15 +102,13 @@ Path BFSSolver::reconstructPath(const Point& start, const Point& goal, int width
         int idx = pointToIndex(current, width);
         current = parent_[idx];
         
-        // Check for invalid parent (no path found)
         if (current == Point(-1, -1)) {
             delete[] reversePath;
-            return path;  // Empty path
+            return path; 
         }
     }
     reversePath[pathLength++] = start;
     
-    // Reverse the path
     for (int i = pathLength - 1; i >= 0; i--) {
         path.addPoint(reversePath[i]);
     }
@@ -146,7 +141,6 @@ Path BFSSolver::solve(const Maze& maze) {
             break;
         }
         
-        // Get neighbors
         Point neighbors[4];
         int neighborCount;
         maze.getNeighbors(current, neighbors, neighborCount);
@@ -167,7 +161,7 @@ Path BFSSolver::solve(const Maze& maze) {
         return reconstructPath(start, goal, width);
     }
     
-    return Path();  // Empty path if no solution
+    return Path();
 }
 
 int BFSSolver::getNodesExplored() const {

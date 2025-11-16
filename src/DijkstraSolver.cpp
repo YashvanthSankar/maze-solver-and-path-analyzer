@@ -1,6 +1,5 @@
 #include "DijkstraSolver.h"
 
-// PQNode implementation
 PQNode::PQNode() : point_(0, 0), priority_(0.0) {}
 
 PQNode::PQNode(const Point& p, double priority) : point_(p), priority_(priority) {}
@@ -21,7 +20,6 @@ bool PQNode::operator>(const PQNode& other) const {
     return priority_ > other.priority_;
 }
 
-// PriorityQueue implementation
 PriorityQueue::PriorityQueue() : size_(0), capacity_(100) {
     heap_ = new PQNode[capacity_];
 }
@@ -138,7 +136,7 @@ void DijkstraSolver::initializeSearchState(int width, int height) {
     
     for (int i = 0; i < maxNodes_; i++) {
         parent_[i] = Point(-1, -1);
-        distance_[i] = 999999.0;  // Large value as infinity
+        distance_[i] = 999999.0;
         visited_[i] = false;
     }
 }
@@ -162,10 +160,9 @@ void DijkstraSolver::cleanupSearchState() {
 double DijkstraSolver::getCellCost(const Maze& maze, const Point& p) const {
     char cell = maze.getCellAt(p);
     
-    // Different terrain costs
     if (cell == '.' || cell == 'S' || cell == 'G') return 1.0;
-    if (cell == '~') return 2.0;  // Water (slower)
-    if (cell == '^') return 3.0;  // Mountain (even slower)
+    if (cell == '~') return 2.0; 
+    if (cell == '^') return 3.0;
     
     return 1.0;
 }
@@ -193,7 +190,6 @@ Path DijkstraSolver::reconstructPath(const Point& start, const Point& goal, int 
         path.addPoint(reversePath[i]);
     }
     
-    // Set actual cost from distance array
     path.setCost(distance_[pointToIndex(goal, width)]);
     delete[] reversePath;
     

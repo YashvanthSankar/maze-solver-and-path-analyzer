@@ -5,7 +5,6 @@ Path::Path() : points_(nullptr), size_(0), capacity_(0), cost_(0.0) {
     points_ = new Point[capacity_];
 }
 
-// Copy constructor
 Path::Path(const Path& other) : size_(other.size_), capacity_(other.capacity_), cost_(other.cost_) {
     points_ = new Point[capacity_];
     for (int i = 0; i < size_; i++) {
@@ -17,7 +16,6 @@ Path::~Path() {
     delete[] points_;
 }
 
-// Assignment operator
 Path& Path::operator=(const Path& other) {
     if (this != &other) {
         delete[] points_;
@@ -67,15 +65,13 @@ void Path::addPoint(const Point& p) {
     points_[size_++] = p;
 }
 
-// Operator[] for indexed access
 Point Path::operator[](int index) const {
     if (index >= 0 && index < size_) {
         return points_[index];
     }
-    return Point(-1, -1);  // Invalid point
+    return Point(-1, -1);
 }
 
-// Operator+ for concatenating paths
 Path Path::operator+(const Path& other) const {
     Path result;
     result.cost_ = cost_ + other.cost_;
@@ -90,7 +86,6 @@ Path Path::operator+(const Path& other) const {
     return result;
 }
 
-// Stream output operator
 std::ostream& operator<<(std::ostream& os, const Path& path) {
     os << "Path[" << path.size_ << " points, cost=" << path.cost_ << "]: ";
     for (int i = 0; i < path.size_; i++) {

@@ -1,0 +1,87 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{xcolor}
+\hypersetup{
+    colorlinks=true,
+    urlcolor=blue,
+    linkcolor=black
+}
+
+\title{Maze Engine OOP Compliance Report}
+\author{Maze Solver and Path Analyzer}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Overview}
+This document summarizes how the Maze Engine project satisfies the required Object-Oriented Programming (OOP) concepts:
+encapsulation, abstraction, operator overloading, inheritance, polymorphism, exception handling, and templates. Each subsection highlights representative classes and methods within the repository (commit state dated \today).
+
+\section{Encapsulation}
+Encapsulation is demonstrated throughout the code base by hiding internal state behind public interfaces.
+\begin{itemize}
+    \item \texttt{Maze} (\texttt{include/Maze.h}) stores its grid, dimensions, and endpoints as private members while exposing safe getters and setters.
+    \item \texttt{Path} and \texttt{Point} encapsulate their coordinate and cost data, offering controlled mutation via methods like \texttt{addPoint} and \texttt{setCost}.
+    \item \texttt{Renderer} keeps rendering buffers and palette data private, exposing only high-level rendering APIs.
+\end{itemize}
+
+\section{Abstraction}
+Abstraction surfaces in modules that provide high-level operations while shielding complex internals.
+\begin{itemize}
+    \item \texttt{Maze::getNeighbors} abstracts grid traversal details for solver algorithms.
+    \item \texttt{PathAnalyzer} (\texttt{src/PathAnalyzer.cpp}) delegates calculation details to helpers such as \texttt{calculateTurns} and \texttt{countNarrowPassages}, offering a simple \texttt{analyze} interface.
+    \item \texttt{MazeGenerator} exposes preset generation methods (\texttt{generateEasy}, \texttt{generateHard}) that hide recursion, randomness, and terrain placement implementation details.
+\end{itemize}
+
+\section{Operator Overloading}
+Several classes overload operators to deliver idiomatic semantics:
+\begin{itemize}
+    \item \texttt{Point} overloads arithmetic (\texttt{operator+}, \texttt{operator-}) and comparison operators to ease geometric manipulation.
+    \item \texttt{Path} overloads \texttt{operator[]} for bounds-checked access and \texttt{operator+} to concatenate paths.
+    \item \texttt{PathMetrics} overloads comparison operators and stream insertion to simplify reporting (\texttt{src/PathAnalyzer.cpp}).
+\end{itemize}
+
+\section{Inheritance and Polymorphism}
+Inheritance and runtime polymorphism are showcased via the new strategy interface:
+\begin{itemize}
+    \item \texttt{MazeSolverStrategy} (\texttt{include/MazeSolverStrategy.h}) defines the abstract contract for maze-solving algorithms.
+    \item \texttt{BFSSolver} and \texttt{DijkstraSolver} now inherit from \texttt{MazeSolverStrategy}, overriding \texttt{solve}, \texttt{getNodesExplored}, and \texttt{name}.
+    \item \texttt{MazeSolverApp::handleQuickSolve} (\texttt{src/main.cpp}) uses a \texttt{std::vector\textless std::unique	extunderscore ptr\textless MazeSolverStrategy\textgreater\textgreater} to iterate polymorphically over solvers, invoking the virtual interface without knowing concrete types.
+\end{itemize}
+
+\section{Exception Handling}
+Custom exceptions and robust error handling are integrated as follows:
+\begin{itemize}
+    \item \texttt{Exceptions.h} introduces \texttt{MazeException} and \texttt{AnalysisException} derived from \texttt{std::runtime	extunderscore error}.
+    \item \texttt{MazeSolverApp::handleLoadMaze} wraps file loading in a \texttt{try}-\texttt{catch} block, throwing \texttt{MazeException} on failure to provide meaningful feedback.
+    \item \texttt{PathAnalyzer::analyze} employs a \texttt{try}-\texttt{catch} block when computing averages, gracefully handling empty sample sets via \texttt{AnalysisException}.
+\end{itemize}
+
+\section{Templates}
+Generic programming is demonstrated through the reusable statistics helper:
+\begin{itemize}
+    \item \texttt{StatsAggregator\textless T\textgreater} (\texttt{include/StatsAggregator.h}) is a templated utility constrained to arithmetic types, providing \texttt{min}, \texttt{max}, and \texttt{average} calculations.
+    \item \texttt{PathAnalyzer::analyze} instantiates \texttt{StatsAggregator\textless double\textgreater} to compute per-step traversal averages, illustrating template usage in production code.
+\end{itemize}
+
+\section{Summary Table}
+\begin{longtable}{>{\bfseries}p{0.25\linewidth} p{0.7\linewidth}}
+Concept & Representative Implementations \\ \hline
+Encapsulation & \texttt{Maze}, \texttt{Path}, \texttt{Renderer} keep state private and expose public APIs. \\ \hline
+Abstraction & \texttt{Maze::getNeighbors}, \texttt{PathAnalyzer::analyze}, \texttt{MazeGenerator} presets. \\ \hline
+Operator Overloading & \texttt{Point} arithmetic/comparison, \texttt{Path::operator+}, \texttt{PathMetrics} comparisons. \\ \hline
+Inheritance & \texttt{BFSSolver}, \texttt{DijkstraSolver} derive from \texttt{MazeSolverStrategy}. \\ \hline
+Polymorphism & \texttt{MazeSolverApp::handleQuickSolve} executes solvers via virtual interface. \\ \hline
+Exception Handling & \texttt{MazeSolverApp::handleLoadMaze}, \texttt{PathAnalyzer::analyze}, custom exceptions in \texttt{Exceptions.h}. \\ \hline
+Templates & \texttt{StatsAggregator\textless T\textgreater} reused in \texttt{PathAnalyzer::analyze}. \\ \hline
+\end{longtable}
+
+\section{Conclusion}
+The recent updates ensure the Maze Engine project actively demonstrates all major OOP paradigms. The new strategy interface and statistics utility not only fulfil academic requirements but also improve maintainability and extensibility of the codebase.
+
+\end{document}

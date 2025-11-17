@@ -1,4 +1,5 @@
 #include "PathAnalyzer.h"
+#include "StatsAggregator.h"
 
 #include <algorithm>
 
@@ -170,11 +171,27 @@ PathMetrics PathAnalyzer::analyze(const Path& path, const Maze& maze) {
     metrics_.setDirectionChanges(calculateDirectionChanges(path));
     metrics_.setStraightness(calculateStraightness(path));
     
-    if (path.getSize() > 1) {
-        metrics_.setAvgStepCost(path.getCost() / static_cast<double>(effectiveLength));
-    } else {
-        metrics_.setAvgStepCost(0.0);
+    StatsAggregator<double> stepCosts;
+    for (int i = 1; i < path.getSize(); ++i) {
+        const Point& current = path[i];
+        char cell = maze.getCellAt(current);
+        double cost = 1.0;
+        if (cell == '~') {
+            cost = 2.0;
+        } else if (cell == '^') {
+            cost = 3.0;
+        }
+        stepCosts.addSample(cost);
     }
+
+    double averageCost = 0.0;
+    try {
+        averageCost = stepCosts.average();
+    } catch (const AnalysisException&) {
+        averageCost = 0.0;
+    }
+
+    metrics_.setAvgStepCost(averageCost);
     
     metrics_.setNarrowPassages(countNarrowPassages(path, maze));
     

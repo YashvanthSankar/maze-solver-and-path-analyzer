@@ -2,6 +2,7 @@
 #define BFSSOLVER_H
 
 #include "Maze.h"
+#include "MazeSolverStrategy.h"
 #include "Path.h"
 #include <deque>
 #include <vector>
@@ -18,8 +19,8 @@ public:
     int getSize() const;
 };
 
-// BFSSolver class demonstrating Encapsulation and Abstraction
-class BFSSolver {
+// BFSSolver class demonstrating Encapsulation, Abstraction, Inheritance, and Polymorphism
+class BFSSolver : public MazeSolverStrategy {
 private:
     std::vector<Point> parent_;   // Parent map for path reconstruction
     std::vector<bool> visited_;   // Visited flags
@@ -30,8 +31,9 @@ private:
 public:
     BFSSolver();
 
-    Path solve(const Maze& maze);
-    int getNodesExplored() const;
+    Path solve(const Maze& maze) override;
+    int getNodesExplored() const override;
+    std::string name() const override;
 };
 
 #endif

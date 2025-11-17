@@ -4,6 +4,7 @@
 #include "Maze.h"
 #include "Point.h"
 #include <ctime>
+#include <string>
 
 /**
  * @class GameMode
@@ -15,6 +16,9 @@
  * - Operator Overloading: Uses Point operators for movement
  */
 class GameMode {
+public:
+    enum class GameTheme { NeonMatrix = 0, EmberGlow, ArcticAurora, Monochrome };
+
 private:
     Maze* maze_;
     Point playerPos_;
@@ -23,6 +27,7 @@ private:
     time_t startTime_;
     bool gameWon_;
     bool gameRunning_;
+    GameTheme theme_;
     
     // Encapsulated helper methods
     void initNcurses();
@@ -33,6 +38,8 @@ private:
     void drawStatusBar();
     void drawInstructions();
     void showVictoryScreen();
+    void configureColorPairs();
+    int measureDisplayWidth(const std::string& text) const;
     
 public:
     // Constructor and Destructor
@@ -43,6 +50,7 @@ public:
     void startGame(Maze& maze);
     void handleInput();
     bool isGameRunning() const;
+    void setTheme(GameTheme theme);
     
     // Game state accessors
     int getMoves() const;

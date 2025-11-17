@@ -218,3 +218,7 @@ int DijkstraSolver::getNodesExplored() const {
     }
     return count;
 }
+
+std::string DijkstraSolver::name() const {
+    return "Dijkstra's Algorithm";
+}

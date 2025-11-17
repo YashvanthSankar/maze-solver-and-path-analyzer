@@ -2,6 +2,8 @@
 #define CLIUTILS_H
 
 #include <iostream>
+#include <string>
+#include <vector>
 
 // CLI Utilities class for enhanced user experience (Encapsulation)
 class CLIUtils {
@@ -30,10 +32,43 @@ private:
     static const char* BG_CYAN;
     static const char* BG_WHITE;
     
+public:
+    struct ColorScheme {
+        std::string primary;
+        std::string secondary;
+        std::string accent;
+        std::string success;
+        std::string warning;
+        std::string error;
+        std::string info;
+        std::string muted;
+        std::string frame;
+        std::string badge;
+        std::string headline;
+        std::string panelBackground;
+        std::string panelForeground;
+        std::string selectionBackground;
+        std::string selectionForeground;
+    };
+    
+private:
     // Encapsulated state
     bool colorsEnabled_;
+    ColorScheme colorScheme_;
+    static ColorScheme defaultScheme();
+    std::string resolveColor(const std::string& candidate, const char* fallback) const;
     
 public:
+    enum class InputKey {
+        Up,
+        Down,
+        Left,
+        Right,
+        Enter,
+        Escape,
+        Other
+    };
+
     CLIUtils();
     
     // Screen control
@@ -44,6 +79,7 @@ public:
     
     // Color output
     void printColored(const char* text, const char* color) const;
+    void printColored(const std::string& text, const std::string& color) const;
     void printSuccess(const char* text) const;
     void printError(const char* text) const;
     void printWarning(const char* text) const;
@@ -77,6 +113,17 @@ public:
     void enableColors();
     void disableColors();
     bool areColorsEnabled() const;
+    void setColorScheme(const ColorScheme& scheme);
+    const ColorScheme& getColorScheme() const;
+    void getTerminalSize(int& rows, int& cols) const;
+    int measureDisplayWidth(const std::string& text) const;
+    int centerPadding(int contentWidth) const;
+    InputKey readMenuKey() const;
+    int selectFromList(const std::string& title,
+                       const std::vector<std::string>& options,
+                       int initialIndex = 0,
+                       bool allowEscape = false,
+                       bool wrap = true) const;
     
     // Optional ncurses support - controlled at compile time with USE_NCURSES
     void initNcurses();

@@ -116,3 +116,7 @@ int BFSSolver::getNodesExplored() const {
     }
     return count;
 }
+
+std::string BFSSolver::name() const {
+    return "Breadth-First Search";
+}

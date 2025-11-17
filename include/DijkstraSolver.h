@@ -2,6 +2,7 @@
 #define DIJKSTRASOLVER_H
 
 #include "Maze.h"
+#include "MazeSolverStrategy.h"
 #include "Path.h"
 #include <vector>
 
@@ -41,8 +42,8 @@ public:
     int getSize() const;
 };
 
-// DijkstraSolver class with weighted pathfinding
-class DijkstraSolver {
+// DijkstraSolver class with weighted pathfinding leveraging Inheritance and Polymorphism
+class DijkstraSolver : public MazeSolverStrategy {
 private:
     std::vector<Point> parent_;
     std::vector<double> distance_;
@@ -55,8 +56,9 @@ private:
 public:
     DijkstraSolver();
 
-    Path solve(const Maze& maze);
-    int getNodesExplored() const;
+    Path solve(const Maze& maze) override;
+    int getNodesExplored() const override;
+    std::string name() const override;
 };
 
 #endif

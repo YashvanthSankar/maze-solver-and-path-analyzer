@@ -2,39 +2,20 @@
 #include <fstream>
 #include <unistd.h>
 
-Renderer::Renderer() : displayGrid_(nullptr), width_(0), height_(0), useColors_(true) {}
+Renderer::Renderer() : displayGrid_(), width_(0), height_(0), useColors_(true) {}
 
-Renderer::~Renderer() {
-    deallocateDisplayGrid();
-}
-
-void Renderer::allocateDisplayGrid() {
-    displayGrid_ = new char*[height_];
-    for (int i = 0; i < height_; i++) {
-        displayGrid_[i] = new char[width_];
-    }
-}
-
-void Renderer::deallocateDisplayGrid() {
-    if (displayGrid_ != nullptr) {
-        for (int i = 0; i < height_; i++) {
-            delete[] displayGrid_[i];
-        }
-        delete[] displayGrid_;
-        displayGrid_ = nullptr;
-    }
+int Renderer::index(int x, int y) const {
+    return y * width_ + x;
 }
 
 void Renderer::copyMazeToDisplay(const Maze& maze) {
-    deallocateDisplayGrid();
-    
     width_ = maze.getWidth();
     height_ = maze.getHeight();
-    allocateDisplayGrid();
-    
-    for (int i = 0; i < height_; i++) {
-        for (int j = 0; j < width_; j++) {
-            displayGrid_[i][j] = maze.getCellAt(j, i);
+    displayGrid_.assign(static_cast<std::size_t>(width_ * height_), ' ');
+
+    for (int y = 0; y < height_; y++) {
+        for (int x = 0; x < width_; x++) {
+            displayGrid_[static_cast<std::size_t>(index(x, y))] = maze.getCellAt(x, y);
         }
     }
 }
@@ -44,11 +25,11 @@ void Renderer::overlayPath(const Path& path) {
         Point p = path[i];
         int x = p.getX();
         int y = p.getY();
-        
+
         if (x >= 0 && x < width_ && y >= 0 && y < height_) {
-            // Don't overwrite start (S) and goal (G)
-            if (displayGrid_[y][x] != 'S' && displayGrid_[y][x] != 'G') {
-                displayGrid_[y][x] = '*';
+            char& cell = displayGrid_[static_cast<std::size_t>(index(x, y))];
+            if (cell != 'S' && cell != 'G') {
+                cell = '*';
             }
         }
     }
@@ -65,8 +46,9 @@ void Renderer::overlayMultiplePaths(const Path* paths, int pathCount) {
             int y = pt.getY();
             
             if (x >= 0 && x < width_ && y >= 0 && y < height_) {
-                if (displayGrid_[y][x] != 'S' && displayGrid_[y][x] != 'G') {
-                    displayGrid_[y][x] = markers[p];
+                char& cell = displayGrid_[static_cast<std::size_t>(index(x, y))];
+                if (cell != 'S' && cell != 'G') {
+                    cell = markers[p];
                 }
             }
         }
@@ -89,7 +71,7 @@ void Renderer::render(const Maze& maze) {
     for (int i = 0; i < height_; i++) {
         std::cout << "║";
         for (int j = 0; j < width_; j++) {
-            char cell = displayGrid_[i][j];
+            char cell = displayGrid_[static_cast<std::size_t>(index(j, i))];
             if (useColors_) {
                 std::cout << getCellColor(cell);
                 // Use better symbols for each cell type
@@ -131,7 +113,9 @@ void Renderer::render(const Maze& maze) {
     
     // Bottom border
     std::cout << "╚";
-    for (int i = 0; i < width_; i++) std::cout << "═";
+    for (int i = 0; i < width_; i++) {
+        for (int k = 0; k < cellW; k++) std::cout << "═";
+    }
     std::cout << "╝\n";
     
     if (useColors_) {
@@ -181,8 +165,9 @@ void Renderer::renderAnimated(const Maze& maze, const Path& path, int delayMs) {
             int x = p.getX();
             int y = p.getY();
             if (x >= 0 && x < width_ && y >= 0 && y < height_) {
-                if (displayGrid_[y][x] != 'S' && displayGrid_[y][x] != 'G') {
-                    displayGrid_[y][x] = '*';
+                char& cell = displayGrid_[static_cast<std::size_t>(index(x, y))];
+                if (cell != 'S' && cell != 'G') {
+                    cell = '*';
                 }
             }
         }
@@ -197,7 +182,7 @@ void Renderer::renderAnimated(const Maze& maze, const Path& path, int delayMs) {
         for (int i = 0; i < height_; i++) {
             std::cout << "║";
             for (int j = 0; j < width_; j++) {
-                char cell = displayGrid_[i][j];
+                char cell = displayGrid_[static_cast<std::size_t>(index(j, i))];
                 if (useColors_) {
                     std::cout << getCellColor(cell);
                     // Use better symbols
@@ -271,7 +256,7 @@ void Renderer::render(const Maze& maze, const Path& path) {
     for (int i = 0; i < height_; i++) {
         std::cout << "║";
         for (int j = 0; j < width_; j++) {
-            char cell = displayGrid_[i][j];
+            char cell = displayGrid_[static_cast<std::size_t>(index(j, i))];
             if (useColors_) {
                 std::cout << getCellColor(cell);
                 // Use better symbols for each cell type
@@ -344,7 +329,7 @@ void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path&
     for (int i = 0; i < height_; i++) {
         std::cout << "\033[1;35m║\033[0m";
         for (int j = 0; j < width_; j++) {
-            char cell = displayGrid_[i][j];
+            char cell = displayGrid_[static_cast<std::size_t>(index(j, i))];
             if (useColors_) {
                 std::cout << getCellColor(cell);
             }
@@ -401,13 +386,13 @@ void Renderer::renderComparison(const Maze& maze, const Path& path1, const Path&
 
 bool Renderer::saveToFile(const char* filename) const {
     std::ofstream file(filename);
-    if (!file.is_open()) {
+    if (!file.is_open() || displayGrid_.empty() || width_ == 0 || height_ == 0) {
         return false;
     }
     
-    for (int i = 0; i < height_; i++) {
-        for (int j = 0; j < width_; j++) {
-            file << displayGrid_[i][j];
+    for (int y = 0; y < height_; y++) {
+        for (int x = 0; x < width_; x++) {
+            file << displayGrid_[static_cast<std::size_t>(index(x, y))];
         }
         file << "\n";
     }
@@ -417,7 +402,7 @@ bool Renderer::saveToFile(const char* filename) const {
 }
 
 void Renderer::clear() {
-    deallocateDisplayGrid();
+    displayGrid_.clear();
     width_ = 0;
     height_ = 0;
 }

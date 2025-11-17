@@ -18,23 +18,34 @@ OBJ_DIR = build
 EXAMPLE_DIR = examples
 
 # Source Files (Enhanced Version with Maze Generator and CLI Utils)
-SOURCES = $(SRC_DIR)/main.cpp \
-          $(SRC_DIR)/Point.cpp \
-          $(SRC_DIR)/Path.cpp \
-          $(SRC_DIR)/Maze.cpp \
-          $(SRC_DIR)/BFSSolver.cpp \
-          $(SRC_DIR)/DijkstraSolver.cpp \
-          $(SRC_DIR)/PathAnalyzer.cpp \
-          $(SRC_DIR)/Renderer.cpp \
-          $(SRC_DIR)/MazeGenerator.cpp \
-          $(SRC_DIR)/CLIUtils.cpp \
-          $(SRC_DIR)/GameMode.cpp
+CORE_SOURCES = $(SRC_DIR)/Point.cpp \
+			   $(SRC_DIR)/Path.cpp \
+			   $(SRC_DIR)/Maze.cpp \
+			   $(SRC_DIR)/BFSSolver.cpp \
+			   $(SRC_DIR)/DijkstraSolver.cpp \
+			   $(SRC_DIR)/PathAnalyzer.cpp \
+			   $(SRC_DIR)/Renderer.cpp \
+			   $(SRC_DIR)/MazeGenerator.cpp \
+			   $(SRC_DIR)/CLIUtils.cpp \
+			   $(SRC_DIR)/GameMode.cpp
+
+SOURCES = $(CORE_SOURCES) \
+		  $(SRC_DIR)/main.cpp
 
 # Object Files (Auto-generated from sources, placed in build directory)
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
+CORE_OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CORE_SOURCES))
+MAIN_OBJECT = $(OBJ_DIR)/main.o
+OBJECTS = $(CORE_OBJECTS) $(MAIN_OBJECT)
 
 # Header Files (For dependency tracking)
 HEADERS = $(wildcard $(INC_DIR)/*.h)
+
+# Tests
+TEST_DIR = tests
+TEST_SOURCES = $(TEST_DIR)/SmokeTest.cpp
+TEST_OBJECTS = $(OBJ_DIR)/SmokeTest.o
+TEST_BIN_DIR = $(OBJ_DIR)/tests
+TEST_TARGET = $(TEST_BIN_DIR)/smoke_tests
 
 # ==============================================================================
 # Build Targets
@@ -57,9 +68,23 @@ $(TARGET): $(OBJECTS)
 	@$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJECTS) $(LDFLAGS)
 
 # Compile individual source files to object files
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS) | $(OBJ_DIR)
 	@echo "Compiling $<..."
 	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Compile test sources
+$(OBJ_DIR)/SmokeTest.o: $(TEST_DIR)/SmokeTest.cpp $(HEADERS) | $(OBJ_DIR)
+	@echo "Compiling $<..."
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Ensure test binary directory exists
+$(TEST_BIN_DIR): | $(OBJ_DIR)
+	@mkdir -p $(TEST_BIN_DIR)
+
+# Link smoke tests
+$(TEST_TARGET): $(CORE_OBJECTS) $(TEST_OBJECTS) | $(TEST_BIN_DIR)
+	@echo "Linking smoke tests..."
+	@$(CXX) $(CXXFLAGS) -o $(TEST_TARGET) $(CORE_OBJECTS) $(TEST_OBJECTS) $(LDFLAGS)
 
 # ==============================================================================
 # Utility Targets
@@ -76,6 +101,11 @@ run: $(TARGET)
 	@echo "Running Maze Solver..."
 	@echo ""
 	@./$(TARGET)
+
+# Build and run smoke tests
+test: $(TEST_TARGET)
+	@echo "Running smoke tests..."
+	@$(TEST_TARGET)
 
 # Clean and rebuild everything
 rebuild: clean all
@@ -159,4 +189,4 @@ help:
 # Phony Targets (Not actual files)
 # ==============================================================================
 
-.PHONY: all clean run rebuild install-deps memcheck info help
+.PHONY: all clean run rebuild install-deps memcheck info help test

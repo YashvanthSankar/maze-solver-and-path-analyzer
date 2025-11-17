@@ -10,6 +10,7 @@
 #include "GameMode.h"
 #include <iostream>
 #include <ctime>
+#include <algorithm>
 #include <unistd.h>
 
 class MazeSolverApp {
@@ -305,7 +306,8 @@ void MazeSolverApp::handleSolveBFS() {
     } else {
         cli_.printSuccess("Path found!");
         std::cout << "\n";
-        std::cout << "  Path length: " << bfsPath_.getSize() << " steps\n";
+    int bfsSteps = std::max(0, bfsPath_.getSize() - 1);
+    std::cout << "  Path length: " << bfsSteps << " steps\n";
         std::cout << "  Nodes explored: " << solver.getNodesExplored() << "\n";
         std::cout << "  Cost: " << bfsPath_.getCost() << "\n";
         bfsSolved_ = true;
@@ -346,7 +348,8 @@ void MazeSolverApp::handleSolveDijkstra() {
     } else {
         cli_.printSuccess("Path found!");
         std::cout << "\n";
-        std::cout << "  Path length: " << dijkstraPath_.getSize() << " steps\n";
+    int dijkstraSteps = std::max(0, dijkstraPath_.getSize() - 1);
+    std::cout << "  Path length: " << dijkstraSteps << " steps\n";
         std::cout << "  Nodes explored: " << solver.getNodesExplored() << "\n";
         std::cout << "  Cost: " << dijkstraPath_.getCost() << "\n";
         dijkstraSolved_ = true;
@@ -515,8 +518,11 @@ void MazeSolverApp::handleQuickSolve() {
     std::cout << "\n";
     cli_.printHeader("Results");
     
-    std::cout << "\n  BFS: " << bfsPath_.getSize() << " steps, cost " << bfsPath_.getCost() << "\n";
-    std::cout << "  Dijkstra: " << dijkstraPath_.getSize() << " steps, cost " << dijkstraPath_.getCost() << "\n";
+    int bfsSteps = std::max(0, bfsPath_.getSize() - 1);
+    int dijkstraSteps = std::max(0, dijkstraPath_.getSize() - 1);
+
+    std::cout << "\n  BFS: " << bfsSteps << " steps, cost " << bfsPath_.getCost() << "\n";
+    std::cout << "  Dijkstra: " << dijkstraSteps << " steps, cost " << dijkstraPath_.getCost() << "\n";
     
     std::cout << "\n";
     renderer_.renderComparison(maze_, bfsPath_, dijkstraPath_);

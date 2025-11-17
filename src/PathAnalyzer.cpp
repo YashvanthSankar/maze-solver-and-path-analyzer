@@ -1,5 +1,7 @@
 #include "PathAnalyzer.h"
 
+#include <algorithm>
+
 PathMetrics::PathMetrics() : totalLength_(0), numberOfTurns_(0), directionChanges_(0),
                              straightness_(0.0), avgStepCost_(0.0), narrowPassages_(0) {}
 
@@ -162,13 +164,14 @@ int PathAnalyzer::countNarrowPassages(const Path& path, const Maze& maze) const 
 }
 
 PathMetrics PathAnalyzer::analyze(const Path& path, const Maze& maze) {
-    metrics_.setTotalLength(path.getSize() - 1);
+    int effectiveLength = std::max(0, path.getSize() - 1);
+    metrics_.setTotalLength(effectiveLength);
     metrics_.setNumberOfTurns(calculateTurns(path));
     metrics_.setDirectionChanges(calculateDirectionChanges(path));
     metrics_.setStraightness(calculateStraightness(path));
     
-    if (path.getSize() > 0) {
-        metrics_.setAvgStepCost(path.getCost() / (path.getSize() - 1));
+    if (path.getSize() > 1) {
+        metrics_.setAvgStepCost(path.getCost() / static_cast<double>(effectiveLength));
     } else {
         metrics_.setAvgStepCost(0.0);
     }

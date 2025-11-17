@@ -3,6 +3,7 @@
 
 #include "Maze.h"
 #include "Path.h"
+#include <vector>
 
 // Node for priority queue (encapsulation)
 class PQNode {
@@ -25,22 +26,15 @@ public:
 // Simple Priority Queue (min-heap, no templates)
 class PriorityQueue {
 private:
-    PQNode* heap_;
-    int size_;
-    int capacity_;
-    
-    void resize();
+    std::vector<PQNode> heap_;
+
     void heapifyUp(int index);
     void heapifyDown(int index);
-    void swap(int i, int j);
-    int parent(int i) const;
-    int leftChild(int i) const;
-    int rightChild(int i) const;
+    static int parent(int i);
+    static int leftChild(int i);
+    static int rightChild(int i);
 
 public:
-    PriorityQueue();
-    ~PriorityQueue();
-    
     void push(const PQNode& node);
     PQNode pop();
     bool isEmpty() const;
@@ -50,22 +44,17 @@ public:
 // DijkstraSolver class with weighted pathfinding
 class DijkstraSolver {
 private:
-    Point* parent_;
-    double* distance_;
-    bool* visited_;
-    int maxNodes_;
-    
+    std::vector<Point> parent_;
+    std::vector<double> distance_;
+    std::vector<bool> visited_;
+
     int pointToIndex(const Point& p, int width) const;
-    Point indexToPoint(int index, int width) const;
-    void initializeSearchState(int width, int height);
-    void cleanupSearchState();
     Path reconstructPath(const Point& start, const Point& goal, int width) const;
     double getCellCost(const Maze& maze, const Point& p) const;
 
 public:
     DijkstraSolver();
-    ~DijkstraSolver();
-    
+
     Path solve(const Maze& maze);
     int getNodesExplored() const;
 };

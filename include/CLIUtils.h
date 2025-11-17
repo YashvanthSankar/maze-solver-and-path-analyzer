@@ -101,7 +101,7 @@ public:
     
     // Formatting
     void printCentered(const char* text, int width) const;
-    void printHeader(const char* text) const;
+    void printHeader(const char* text, bool leadingBlank = true) const;
     void printSubHeader(const char* text) const;
     void printSeparator() const;
     

@@ -381,8 +381,10 @@ void CLIUtils::printCentered(const char* text, int width) const {
     std::cout << std::string(padding, ' ') << text << std::endl;
 }
 
-void CLIUtils::printHeader(const char* text) const {
-    std::cout << std::endl;
+void CLIUtils::printHeader(const char* text, bool leadingBlank) const {
+    if (leadingBlank) {
+        std::cout << std::endl;
+    }
     if (colorsEnabled_) {
         const size_t len = std::strlen(text);
         const std::string frameColor = resolveColor(colorScheme_.frame, CYAN);
@@ -574,8 +576,25 @@ int CLIUtils::selectFromList(const std::string& title,
 
     while (true) {
         clearScreen();
+
+        int rows = 0;
+        int cols = 0;
+        getTerminalSize(rows, cols);
+
+        const int headerHeight = title.empty() ? 0 : 3;
+        const int headerSpacing = 1; // blank line after header (or leading spacing when no header)
+        const int optionLines = static_cast<int>(options.size());
+        const int spacerAfterOptions = 1;
+        const int instructionsLines = 1;
+        const int contentHeight = headerHeight + headerSpacing + optionLines + spacerAfterOptions + instructionsLines;
+        const int topPadding = std::max(0, (rows - contentHeight) / 2);
+
+        for (int i = 0; i < topPadding; ++i) {
+            std::cout << "\n";
+        }
+
         if (!title.empty()) {
-            printHeader(title.c_str());
+            printHeader(title.c_str(), false);
         }
 
         std::cout << "\n";

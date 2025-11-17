@@ -425,6 +425,21 @@ int MazeSolverApp::showMainMenu() {
         const int borderWidth = boxWidth + 2;
         const int leftPad = cli_.centerPadding(borderWidth);
 
+        int rows = 0;
+        int cols = 0;
+        cli_.getTerminalSize(rows, cols);
+
+        const int sectionCount = static_cast<int>(sections.size());
+        const int totalItems = static_cast<int>(displayItems.size());
+        const int statusCount = static_cast<int>(statusLines.size());
+        const int boxLines = 5 + sectionCount * 2 + totalItems + statusCount;
+        const int contentHeight = boxLines + 1 + 1; // spacer + instructions
+        const int topPadding = std::max(0, (rows - contentHeight) / 2);
+
+        for (int i = 0; i < topPadding; ++i) {
+            std::cout << "\n";
+        }
+
         auto printHorizontal = [&](const std::string& left, const std::string& fill, const std::string& right) {
             std::cout << std::string(leftPad, ' ');
             if (colorOn && !scheme.frame.empty()) std::cout << scheme.frame;
@@ -526,9 +541,9 @@ int MazeSolverApp::showMainMenu() {
             endLine();
         };
 
-    printHorizontal("╔", "═", "╗");
+        printHorizontal("╔", "═", "╗");
         printStaticLine("MAIN MENU", scheme.headline.empty() ? scheme.primary : scheme.headline, true);
-    printHorizontal("╠", "═", "╣");
+        printHorizontal("╠", "═", "╣");
 
         std::size_t displayIndex = 0;
         for (const auto& section : sections) {
@@ -546,7 +561,7 @@ int MazeSolverApp::showMainMenu() {
             printStaticLine(status.text, status.color, false);
         }
 
-    printHorizontal("╚", "═", "╝");
+        printHorizontal("╚", "═", "╝");
 
         std::string instructions = "Use ↑/↓ to navigate, Enter to select, Esc to exit";
         int instructionsWidth = cli_.measureDisplayWidth(instructions);

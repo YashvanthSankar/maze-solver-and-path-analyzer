@@ -3,8 +3,6 @@
 
 #include "Maze.h"
 #include "Point.h"
-#include <array>
-#include <chrono>
 #include <ctime>
 #include <string>
 
@@ -30,19 +28,6 @@ private:
     bool gameWon_;
     bool gameRunning_;
     GameTheme theme_;
-    std::array<short, 4> headerGradientPairs_;
-    std::array<short, 4> mazeGradientPairs_;
-    std::array<short, 3> goalPulsePairs_;
-    std::array<short, 4> footerGradientPairs_;
-    short toastPrimaryPair_;
-    short toastAccentPair_;
-    short toastActiveAccentPair_;
-    std::string toastMessage_;
-    std::chrono::steady_clock::time_point toastStart_;
-    std::chrono::milliseconds toastDuration_;
-    bool toastVisible_;
-    int pulseFrame_;
-    int frameCounter_;
     
     // Encapsulated helper methods
     void initNcurses();
@@ -51,15 +36,10 @@ private:
     void updateDisplay();
     void drawMaze();
     void drawStatusBar();
-    void drawFooterBar();
     void drawInstructions();
     void showVictoryScreen();
     void configureColorPairs();
     int measureDisplayWidth(const std::string& text) const;
-    void drawGradientRow(int y, int startX, int width, const std::array<short, 4>& palette, wchar_t glyph = L' ' ) const;
-    void showToast(const std::string& message, short colorPair, std::chrono::milliseconds duration = std::chrono::milliseconds(1800));
-    void updateToast();
-    void drawToast();
     
 public:
     // Constructor and Destructor

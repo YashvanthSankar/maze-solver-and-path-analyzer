@@ -1169,20 +1169,6 @@ void MazeSolverApp::handlePlayGame() {
     
     // Start the game!
     GameMode game;
-    switch (renderer_.getTheme()) {
-        case Renderer::ThemeId::NeonMatrix:
-            game.setTheme(GameMode::GameTheme::NeonMatrix);
-            break;
-        case Renderer::ThemeId::EmberGlow:
-            game.setTheme(GameMode::GameTheme::EmberGlow);
-            break;
-        case Renderer::ThemeId::ArcticAurora:
-            game.setTheme(GameMode::GameTheme::ArcticAurora);
-            break;
-        case Renderer::ThemeId::Monochrome:
-            game.setTheme(GameMode::GameTheme::Monochrome);
-            break;
-    }
     game.startGame(maze_);
     
     // Game finished, back to CLI
@@ -1191,7 +1177,6 @@ void MazeSolverApp::handlePlayGame() {
         cli_.printSuccess("🏆 Congratulations! You completed the maze!");
         std::cout << "\n  Final Statistics:\n";
         std::cout << "    Moves: " << game.getMoves() << "\n";
-        std::cout << "    Time: " << game.getElapsedTime() << " seconds\n";
     } else {
         cli_.printInfo("Game ended. Better luck next time!");
     }

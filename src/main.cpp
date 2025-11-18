@@ -970,7 +970,7 @@ void MazeSolverApp::handlePlayGame() {
     
     // Check if maze is loaded
     if (!mazeLoaded_) {
-        cli_.printInfo("No maze loaded. Let's generate one!");
+        cli_.printInfo("No maze loaded. Let's generate one for you!");
 
         std::vector<std::string> difficultyOptions = {
             "Easy (15x15)",
@@ -981,6 +981,8 @@ void MazeSolverApp::handlePlayGame() {
 
         int difficulty = cli_.selectFromList("Choose difficulty", difficultyOptions, 1, true, false);
         if (difficulty == -1 || difficulty == 3) {
+            cli_.printInfo("Game cancelled.");
+            cli_.waitForEnter();
             return;
         }
 
@@ -989,196 +991,48 @@ void MazeSolverApp::handlePlayGame() {
         std::cout << " Generating game maze...\r";
         std::cout.flush();
 
+        MazeGenerator generator(1,1); // Dummy size, will be reset
         switch (difficulty) {
-            case 0: {
-                MazeGenerator gen1(15, 15);
-                maze_ = gen1.generateEasy();
+            case 0: 
+                generator.setDimensions(15, 15);
+                maze_ = generator.generateEasy();
                 break;
-            }
-            case 1: {
-                MazeGenerator gen2(25, 25);
-                maze_ = gen2.generateMedium();
+            case 1: 
+                generator.setDimensions(25, 25);
+                maze_ = generator.generateMedium();
                 break;
-            }
-            case 2: {
-                MazeGenerator gen3(35, 35);
-                maze_ = gen3.generateHard();
+            case 2: 
+                generator.setDimensions(35, 35);
+                maze_ = generator.generateHard();
                 break;
-            }
         }
 
         mazeLoaded_ = true;
         cli_.printSuccess("Game maze generated!");
-        sleep(1);
+        usleep(1500000); // 1.5 seconds
     }
     
-    // Instructions screen
+    // Briefing screen
     cli_.clearScreen();
-    
-    const int INST_BOX_WIDTH = 62; // Width of instruction box border
-    const int boxVisualWidth = INST_BOX_WIDTH + 2;
-    const int boxPad = cli_.centerPadding(boxVisualWidth);
+    cli_.printHeader("Entering Game Mode");
+    cli_.printInfo("The screen will now switch to the interactive game.");
+    cli_.printInfo("Use arrow keys or WASD to move. Press 'Q' to quit.");
+    cli_.printSuccess("Good luck, have fun!");
+    usleep(4000000); // 4 seconds
 
-    const bool colorOn = renderer_.isColorModeEnabled();
-    const Renderer::ThemePalette& palette = renderer_.getActivePalette();
-    const auto& scheme = cli_.getColorScheme();
-    const std::string reset = colorOn ? "\033[0m" : "";
-
-    auto pick = [&](const std::string& candidate, const std::string& fallback) -> std::string {
-        if (!candidate.empty()) return candidate;
-        return fallback;
-    };
-
-    const std::string frameColor = colorOn ? pick(scheme.frame, palette.frameColor) : "";
-    const std::string headingColor = colorOn ? pick(scheme.headline, palette.headerPrimary) : "";
-    const std::string accentColor = colorOn ? pick(scheme.accent, palette.legendLabelColor) : "";
-    const std::string infoColor = colorOn ? pick(scheme.info, palette.headerSecondary) : "";
-    const std::string successColor = colorOn ? pick(scheme.success, palette.cellStartColor) : "";
-    const std::string errorColor = colorOn ? pick(scheme.error, palette.cellGoalColor) : "";
-    const std::string wallColor = colorOn ? palette.cellWallColor : "";
-    const std::string waterColor = colorOn ? palette.cellWaterColor : "";
-    const std::string mountainColor = colorOn ? palette.cellMountainColor : "";
-
-    auto colorize = [&](const std::string& code, const std::string& text) -> std::string {
-        if (colorOn && !code.empty()) {
-            return code + text + reset;
-        }
-        return text;
-    };
-
-    // Helper to print a line in the instructions box with proper padding
-    auto printInstLine = [&](const std::string &content, int boxWidth) {
-        // Display width calculation accounting for wide Unicode characters
-        int visibleWidth = 0;
-        for (size_t i = 0; i < content.size(); ++i) {
-            if (content[i] == '\033') {
-                // Skip ANSI codes
-                size_t j = i + 1;
-                if (j < content.size() && content[j] == '[') {
-                    j++;
-                    while (j < content.size() && content[j] != 'm') j++;
-                    if (j < content.size()) i = j;
-                    continue;
-                }
-            }
-            
-            unsigned char c = static_cast<unsigned char>(content[i]);
-            // Check for UTF-8 multi-byte sequences
-            if ((c & 0x80) != 0) {
-                // Capture the full UTF-8 character to check if it's wide
-                std::string utf8char;
-                utf8char += content[i];
-                int bytesInChar = 0;
-                
-                if ((c & 0xE0) == 0xC0) bytesInChar = 1;      // 2-byte char
-                else if ((c & 0xF0) == 0xE0) bytesInChar = 2; // 3-byte char
-                else if ((c & 0xF8) == 0xF0) bytesInChar = 3; // 4-byte char
-                
-                for (int j = 0; j < bytesInChar && (i + 1) < content.size(); j++) {
-                    utf8char += content[++i];
-                }
-                
-                // Check if this is a known wide character (displays as 2 columns)
-                // Block elements (█), wave (≈), triangle (▲) are wide
-                if (utf8char == "█" || utf8char == "≈" || utf8char == "▲") {
-                    visibleWidth += 2;
-                } else {
-                    // Other UTF-8 chars like bullet (•) display as 1 column
-                    visibleWidth += 1;
-                }
-            } else {
-                visibleWidth++;
-            }
-        }
-        
-        int padTotal = boxWidth - visibleWidth;
-        if (padTotal < 0) padTotal = 0;
-        
-        std::cout << std::string(static_cast<std::size_t>(boxPad), ' ');
-        if (colorOn && !frameColor.empty()) std::cout << frameColor;
-        std::cout << "║";
-        if (colorOn && !frameColor.empty()) std::cout << reset;
-        std::cout << content;
-        for (int i = 0; i < padTotal; ++i) std::cout << ' ';
-        if (colorOn && !frameColor.empty()) std::cout << frameColor;
-        std::cout << "║";
-        if (colorOn && !frameColor.empty()) std::cout << reset;
-        std::cout << "\n";
-    };
-
-    std::cout << "\n";
-    std::cout << std::string(static_cast<std::size_t>(boxPad), ' ');
-    if (colorOn && !frameColor.empty()) std::cout << frameColor;
-    std::cout << "╔";
-    for (int i = 0; i < INST_BOX_WIDTH; ++i) std::cout << "═";
-    std::cout << "╗";
-    if (colorOn && !frameColor.empty()) std::cout << reset;
-    std::cout << "\n";
-
-    const std::string headingText = "GAME INSTRUCTIONS";
-    int headingLeft = std::max(0, (INST_BOX_WIDTH - static_cast<int>(headingText.size())) / 2);
-    int headingRight = std::max(0, INST_BOX_WIDTH - headingLeft - static_cast<int>(headingText.size()));
-
-    std::cout << std::string(static_cast<std::size_t>(boxPad), ' ');
-    if (colorOn && !frameColor.empty()) std::cout << frameColor;
-    std::cout << "║";
-    if (colorOn && !frameColor.empty()) std::cout << reset;
-    std::cout << std::string(static_cast<std::size_t>(headingLeft), ' ');
-    std::cout << colorize(headingColor, headingText);
-    std::cout << std::string(static_cast<std::size_t>(headingRight), ' ');
-    if (colorOn && !frameColor.empty()) std::cout << frameColor;
-    std::cout << "║\n";
-    if (colorOn && !frameColor.empty()) std::cout << reset;
-
-    std::cout << std::string(static_cast<std::size_t>(boxPad), ' ');
-    if (colorOn && !frameColor.empty()) std::cout << frameColor;
-    std::cout << "╠";
-    for (int i = 0; i < INST_BOX_WIDTH; ++i) std::cout << "═";
-    std::cout << "╣";
-    if (colorOn && !frameColor.empty()) std::cout << reset;
-    std::cout << "\n";
-    
-    printInstLine("", INST_BOX_WIDTH);
-    printInstLine("  " + colorize(accentColor, "Objective:") + " Navigate from your position "
-                  + colorize(successColor, "@") + " to goal " + colorize(errorColor, "G") + "          ",
-                  INST_BOX_WIDTH);
-    printInstLine("", INST_BOX_WIDTH);
-    printInstLine("  " + colorize(accentColor, "Controls:") + "                                                   ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " Arrow Keys or WASD - Move                              ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " Q or ESC - Quit game                                   ", INST_BOX_WIDTH);
-    printInstLine("", INST_BOX_WIDTH);
-    printInstLine("  " + colorize(accentColor, "Tips:") + "                                                       ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " " + colorize(infoColor, "Fewer moves") + " = Higher score                             ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " " + colorize(infoColor, "Faster time") + " = Higher score                             ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " " + colorize(wallColor, "█") + " = Walls (can't pass)                                  ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " " + colorize(waterColor, "≈") + " = Water (passable)                                    ", INST_BOX_WIDTH);
-    printInstLine("    " + colorize(accentColor, "•") + " " + colorize(mountainColor, "▲") + " = Mountain (passable)                                 ", INST_BOX_WIDTH);
-    printInstLine("", INST_BOX_WIDTH);
-    
-    std::cout << std::string(static_cast<std::size_t>(boxPad), ' ');
-    if (colorOn && !frameColor.empty()) std::cout << frameColor;
-    std::cout << "╚";
-    for (int i = 0; i < INST_BOX_WIDTH; ++i) std::cout << "═";
-    std::cout << "╝";
-    if (colorOn && !frameColor.empty()) std::cout << reset;
-    std::cout << "\n\n";
-    
-    std::cout << std::string(static_cast<std::size_t>(boxPad), ' ');
-    cli_.printInfo("Press Enter to start the game...");
-    cli_.waitForEnter();
-    
     // Start the game!
-    GameMode game;
+    GameMode game(renderer_, cli_);
     game.startGame(maze_);
     
     // Game finished, back to CLI
     cli_.clearScreen();
+    cli_.showCursor(); // Ensure cursor is visible again
+    cli_.printHeader("Game Session Ended");
+
     if (game.hasWon()) {
-        cli_.printSuccess("🏆 Congratulations! You completed the maze!");
-        std::cout << "\n  Final Statistics:\n";
-        std::cout << "    Moves: " << game.getMoves() << "\n";
+        cli_.printSuccess("You have returned to the main menu.");
     } else {
-        cli_.printInfo("Game ended. Better luck next time!");
+        cli_.printInfo("Game exited. You have returned to the main menu.");
     }
     
     cli_.waitForEnter();

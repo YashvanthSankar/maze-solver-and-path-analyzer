@@ -1,27 +1,36 @@
 #include "GameMode.h"
 #include <ncurses.h>
-#include <cstdlib>
+#include <locale.h>
 #include <sstream>
 #include <iomanip>
-#include <locale.h>
-#include <vector>
 #include <algorithm>
 
 namespace {
+    // Define color pairs for ncurses
     constexpr short PAIR_PLAYER = 1;
     constexpr short PAIR_GOAL = 2;
     constexpr short PAIR_WALL = 3;
     constexpr short PAIR_PATH = 4;
     constexpr short PAIR_WATER = 5;
     constexpr short PAIR_MOUNTAIN = 6;
-    constexpr short PAIR_VICTORY = 7;
+    constexpr short PAIR_FRAME = 7;
+    constexpr short PAIR_HUD_LABEL = 8;
+    constexpr short PAIR_HUD_VALUE = 9;
+    constexpr short PAIR_VICTORY_BG = 10;
+    constexpr short PAIR_VICTORY_FG = 11;
 }
 
-GameMode::GameMode() 
-        : maze_(nullptr), playerPos_(0, 0), goalPos_(0, 0), 
-            moves_(0), startTime_(0), gameWon_(false), gameRunning_(false),
-            theme_(GameTheme::NeonMatrix) {
-}
+GameMode::GameMode(Renderer& renderer, CLIUtils& cli)
+    : renderer_(renderer),
+      cli_(cli),
+      maze_(nullptr),
+      playerPos_(0, 0),
+      goalPos_(0, 0),
+      moves_(0),
+      startTime_(),
+      gameWon_(false),
+      gameRunning_(false),
+      frameCounter_(0) {}
 
 GameMode::~GameMode() {
     if (gameRunning_) {
@@ -29,29 +38,35 @@ GameMode::~GameMode() {
     }
 }
 
-void GameMode::setTheme(GameTheme theme) {
-    theme_ = theme;
-}
-
 void GameMode::initNcurses() {
-    setlocale(LC_ALL, "");  // Enable UTF-8 support
-    initscr();              // Initialize ncurses
-    cbreak();               // Disable line buffering
-    noecho();               // Don't echo input
-    keypad(stdscr, TRUE);   // Enable arrow keys
-    curs_set(0);            // Hide cursor
-    
-    // Enable colors
-    if (has_colors()) {
+    setlocale(LC_ALL, "");
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    curs_set(0);
+    timeout(60); // ~16 FPS update rate
+
+    if (has_colors() && renderer_.isColorModeEnabled()) {
         start_color();
-#ifdef NCURSES_VERSION
         use_default_colors();
-#endif
-        configureColorPairs();
-        attrset(COLOR_PAIR(PAIR_PATH));
+
+        // Initialize a conservative set of color pairs for ncurses.
+        // Renderer palettes are ANSI/truecolor strings; mapping those precisely
+        // to ncurses colors is out of scope here, so use reasonable defaults
+        // that work across terminals.
+        init_pair(PAIR_PLAYER, COLOR_YELLOW, -1);
+        init_pair(PAIR_GOAL, COLOR_MAGENTA, -1);
+        init_pair(PAIR_WALL, COLOR_BLUE, -1);
+        init_pair(PAIR_PATH, COLOR_WHITE, -1);
+        init_pair(PAIR_WATER, COLOR_CYAN, -1);
+        init_pair(PAIR_MOUNTAIN, COLOR_RED, -1);
+        init_pair(PAIR_FRAME, COLOR_GREEN, -1);
+        init_pair(PAIR_HUD_LABEL, COLOR_WHITE, -1);
+        init_pair(PAIR_HUD_VALUE, COLOR_CYAN, -1);
+        init_pair(PAIR_VICTORY_BG, COLOR_GREEN, -1);
+        init_pair(PAIR_VICTORY_FG, COLOR_BLACK, -1);
     }
-    
-    timeout(100); // Non-blocking input with 100ms timeout
 }
 
 void GameMode::cleanupNcurses() {
@@ -59,490 +74,235 @@ void GameMode::cleanupNcurses() {
     gameRunning_ = false;
 }
 
-void GameMode::configureColorPairs() {
-    if (!has_colors()) {
-        return;
-    }
-
-    struct PairDef {
-        short fg;
-        short bg;
-    };
-
-    PairDef player {COLOR_CYAN, COLOR_BLACK};
-    PairDef goal {COLOR_MAGENTA, COLOR_BLACK};
-    PairDef wall {COLOR_GREEN, COLOR_BLACK};
-    PairDef path {COLOR_WHITE, COLOR_BLACK};
-    PairDef water {COLOR_CYAN, COLOR_BLACK};
-    PairDef mountain {COLOR_BLUE, COLOR_BLACK};
-    PairDef victory {COLOR_BLACK, COLOR_GREEN};
-
-    switch (theme_) {
-        case GameTheme::EmberGlow:
-            player = {COLOR_YELLOW, COLOR_BLACK};
-            goal = {COLOR_RED, COLOR_BLACK};
-            wall = {COLOR_RED, COLOR_BLACK};
-            path = {COLOR_YELLOW, COLOR_BLACK};
-            water = {COLOR_CYAN, COLOR_BLACK};
-            mountain = {COLOR_MAGENTA, COLOR_BLACK};
-            victory = {COLOR_BLACK, COLOR_YELLOW};
-            break;
-        case GameTheme::ArcticAurora:
-            player = {COLOR_CYAN, COLOR_BLACK};
-            goal = {COLOR_WHITE, COLOR_BLACK};
-            wall = {COLOR_BLUE, COLOR_BLACK};
-            path = {COLOR_WHITE, COLOR_BLACK};
-            water = {COLOR_CYAN, COLOR_BLACK};
-            mountain = {COLOR_MAGENTA, COLOR_BLACK};
-            victory = {COLOR_BLACK, COLOR_CYAN};
-            break;
-        case GameTheme::Monochrome:
-            player = {COLOR_WHITE, COLOR_BLACK};
-            goal = {COLOR_WHITE, COLOR_BLACK};
-            wall = {COLOR_WHITE, COLOR_BLACK};
-            path = {COLOR_WHITE, COLOR_BLACK};
-            water = {COLOR_WHITE, COLOR_BLACK};
-            mountain = {COLOR_WHITE, COLOR_BLACK};
-            victory = {COLOR_BLACK, COLOR_WHITE};
-            break;
-        case GameTheme::NeonMatrix:
-        default:
-            break;
-    }
-
-    init_pair(PAIR_PLAYER, player.fg, player.bg);
-    init_pair(PAIR_GOAL, goal.fg, goal.bg);
-    init_pair(PAIR_WALL, wall.fg, wall.bg);
-    init_pair(PAIR_PATH, path.fg, path.bg);
-    init_pair(PAIR_WATER, water.fg, water.bg);
-    init_pair(PAIR_MOUNTAIN, mountain.fg, mountain.bg);
-    init_pair(PAIR_VICTORY, victory.fg, victory.bg);
-}
-
-int GameMode::measureDisplayWidth(const std::string& text) const {
-    int width = 0;
-    for (std::size_t i = 0; i < text.size(); ++i) {
-        unsigned char c = static_cast<unsigned char>(text[i]);
-
-        if (c == '\033') {
-            std::size_t j = i + 1;
-            if (j < text.size() && text[j] == '[') {
-                ++j;
-                while (j < text.size() && text[j] != 'm') {
-                    ++j;
-                }
-                if (j < text.size()) {
-                    i = j;
-                }
-            }
-            continue;
-        }
-
-        if ((c & 0x80) != 0) {
-            std::string utf8Char;
-            utf8Char += text[i];
-            int continuation = 0;
-            if ((c & 0xE0) == 0xC0) continuation = 1;
-            else if ((c & 0xF0) == 0xE0) continuation = 2;
-            else if ((c & 0xF8) == 0xF0) continuation = 3;
-
-            for (int j = 0; j < continuation && i + 1 < text.size(); ++j) {
-                utf8Char += text[++i];
-            }
-
-            static const std::vector<std::string> wideChars = {
-                "█", "≈", "▲", "●", "★",
-                "╔", "╗", "╚", "╝", "╠", "╣", "║", "═"
-            };
-
-            if (std::find(wideChars.begin(), wideChars.end(), utf8Char) != wideChars.end()) {
-                width += 2;
-            } else {
-                width += 1;
-            }
-        } else {
-            width += 1;
-        }
-    }
-    return width;
-}
-
 void GameMode::startGame(Maze& maze) {
     maze_ = &maze;
     playerPos_ = maze_->getStart();
     goalPos_ = maze_->getGoal();
     moves_ = 0;
-    startTime_ = time(nullptr);
+    startTime_ = std::chrono::steady_clock::now();
     gameWon_ = false;
     gameRunning_ = true;
-    
+    frameCounter_ = 0;
+    statusLog_.clear();
+
     initNcurses();
-    updateDisplay();
-    
-    // Game loop
+    logStatus("Game started. Good luck!");
+
     while (gameRunning_) {
         handleInput();
-        
-        // Check win condition
+        updateDisplay();
+        pruneLog();
+        frameCounter_++;
+
         if (playerPos_ == goalPos_ && !gameWon_) {
             gameWon_ = true;
             showVictoryScreen();
-            break;
+            gameRunning_ = false;
         }
-        
-        updateDisplay();
-        napms(50); // Small delay for smooth rendering
     }
-    
+
     cleanupNcurses();
 }
 
 void GameMode::handleInput() {
     int ch = getch();
     Point newPos = playerPos_;
-    
-    switch(ch) {
-        case KEY_UP:
-        case 'w':
-        case 'W':
-            newPos = playerPos_ + Point(0, -1);  // Operator overloading
+
+    switch (ch) {
+        case KEY_UP: case 'w': case 'W':
+            newPos = playerPos_ + Point(0, -1);
             break;
-        case KEY_DOWN:
-        case 's':
-        case 'S':
+        case KEY_DOWN: case 's': case 'S':
             newPos = playerPos_ + Point(0, 1);
             break;
-        case KEY_LEFT:
-        case 'a':
-        case 'A':
+        case KEY_LEFT: case 'a': case 'A':
             newPos = playerPos_ + Point(-1, 0);
             break;
-        case KEY_RIGHT:
-        case 'd':
-        case 'D':
+        case KEY_RIGHT: case 'd': case 'D':
             newPos = playerPos_ + Point(1, 0);
             break;
-        case 'q':
-        case 'Q':
-        case 27: // ESC
+        case 'q': case 'Q': case 27: // ESC
             gameRunning_ = false;
+            logStatus("Exiting game...");
+            return;
+        case ERR: // No input
             return;
         default:
-            return; // No movement
+            logStatus("Unknown key pressed.");
+            return;
     }
-    
-    // Validate and update position
+
     if (isValidMove(newPos)) {
         playerPos_ = newPos;
         moves_++;
+        logStatus("Moved to (" + std::to_string(newPos.getX()) + ", " + std::to_string(newPos.getY()) + ")");
+    } else {
+        logStatus("Blocked! Cannot move there.");
     }
 }
 
 bool GameMode::isValidMove(const Point& newPos) const {
-    if (!maze_) return false;
-    return maze_->isWalkable(newPos);
+    return maze_ && maze_->isWalkable(newPos);
 }
 
 void GameMode::updateDisplay() {
     clear();
+    drawLayout();
     drawMaze();
-    drawStatusBar();
-    drawInstructions();
+    drawHud();
     refresh();
 }
 
-void GameMode::drawMaze() {
-    int height = maze_->getHeight();
-    int width = maze_->getWidth();
-    
-    // Make cells wider for better visibility (each cell is printed cellW characters)
-    const int cellW = 3;
+void GameMode::drawLayout() {
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);
+    attron(COLOR_PAIR(PAIR_FRAME));
+    box(stdscr, 0, 0);
+    mvwhline(stdscr, 2, 1, ACS_HLINE, cols - 2);
+    mvwhline(stdscr, rows - 3, 1, ACS_HLINE, cols - 2);
+    mvwprintw(stdscr, 1, (cols - 14) / 2, "MAZE ADVENTURE");
+    attroff(COLOR_PAIR(PAIR_FRAME));
+}
 
-    // Center the maze on screen (account for doubled cell width)
-    int startY = 3;
-    int totalWidth = width * cellW + 2;
-    int startX = std::max(0, (COLS - totalWidth) / 2);
-    
-    // Draw top border with beautiful UTF-8 box-drawing
-    attron(COLOR_PAIR(PAIR_WALL) | A_BOLD);
-    mvprintw(startY, startX, "╔");
-    for (int i = 0; i < width; i++) {
-        for (int k = 0; k < cellW; k++) addstr("═");
-    }
-    addstr("╗");
-    attroff(COLOR_PAIR(PAIR_WALL) | A_BOLD);
-    
-    // Draw maze content
-    for (int y = 0; y < height; y++) {
-    attron(COLOR_PAIR(PAIR_WALL) | A_BOLD);
-        mvprintw(startY + y + 1, startX, "║");
-    attroff(COLOR_PAIR(PAIR_WALL) | A_BOLD);
-        
-        for (int x = 0; x < width; x++) {
+void GameMode::drawMaze() {
+    const int mazeHeight = maze_->getHeight();
+    const int mazeWidth = maze_->getWidth();
+    const int cellDisplayWidth = 2;
+
+    const int availableHeight = LINES - 6;
+    const int availableWidth = COLS - 4;
+
+    const int mazeRenderHeight = mazeHeight;
+    const int mazeRenderWidth = mazeWidth * cellDisplayWidth;
+
+    const int startY = 3 + (availableHeight - mazeRenderHeight) / 2;
+    const int startX = 2 + (availableWidth - mazeRenderWidth) / 2;
+
+    for (int y = 0; y < mazeHeight; ++y) {
+        for (int x = 0; x < mazeWidth; ++x) {
             Point currentPos(x, y);
             char cell = maze_->getCellAt(currentPos);
-            
-            // Player position (highest priority)
+            int pair = PAIR_PATH;
+            std::string glyph = "  ";
+
             if (currentPos == playerPos_) {
-                attron(COLOR_PAIR(PAIR_PLAYER) | A_BOLD);
-                for (int k = 0; k < cellW; ++k) addstr("●");  // Filled circle for player (double width)
-                attroff(COLOR_PAIR(PAIR_PLAYER) | A_BOLD);
-            }
-            // Goal position
-            else if (currentPos == goalPos_) {
-                attron(COLOR_PAIR(PAIR_GOAL) | A_BOLD);
-                for (int k = 0; k < cellW; ++k) addstr("★");  // Star for goal
-                attroff(COLOR_PAIR(PAIR_GOAL) | A_BOLD);
-            }
-            // Terrain
-            else {
-                switch(cell) {
-                    case '#':
-                        attron(COLOR_PAIR(PAIR_WALL));
-                        for (int k = 0; k < cellW; ++k) addstr("█");  // Full block for walls
-                        attroff(COLOR_PAIR(PAIR_WALL));
-                        break;
-                    case '~':
-                        attron(COLOR_PAIR(PAIR_WATER));
-                        for (int k = 0; k < cellW; ++k) addstr("≈");  // Water waves
-                        attroff(COLOR_PAIR(PAIR_WATER));
-                        break;
-                    case '^':
-                        attron(COLOR_PAIR(PAIR_MOUNTAIN));
-                        for (int k = 0; k < cellW; ++k) addstr("▲");  // Mountain triangle
-                        attroff(COLOR_PAIR(PAIR_MOUNTAIN));
-                        break;
+                pair = PAIR_PLAYER;
+                glyph = (frameCounter_ % 20 < 10) ? "▶ " : "▷ ";
+            } else if (currentPos == goalPos_) {
+                pair = PAIR_GOAL;
+                glyph = (frameCounter_ % 30 < 15) ? "★ " : "☆ ";
+            } else {
+                switch (cell) {
+                    case '#': pair = PAIR_WALL; glyph = "██"; break;
+                    case '~': pair = PAIR_WATER; glyph = "≈≈"; break;
+                    case '^': pair = PAIR_MOUNTAIN; glyph = "▲▲"; break;
                     case '.':
                     case 'S':
-                        attron(COLOR_PAIR(PAIR_PATH));
-                        for (int k = 0; k < cellW; ++k) addstr("·");  // Middle dot for path
-                        attroff(COLOR_PAIR(PAIR_PATH));
-                        break;
+                    case 'G':
+                        pair = PAIR_PATH; glyph = "  "; break;
                     default:
-                        for (int k = 0; k < cellW; ++k) addstr(" ");
+                        glyph = "??"; break;
                 }
             }
+            attron(COLOR_PAIR(pair));
+            mvwprintw(stdscr, startY + y, startX + x * cellDisplayWidth, "%s", glyph.c_str());
+            attroff(COLOR_PAIR(pair));
         }
-        
-        attron(COLOR_PAIR(PAIR_WALL) | A_BOLD);
-        addstr("║");
-        attroff(COLOR_PAIR(PAIR_WALL) | A_BOLD);
     }
-    
-    // Draw bottom border (account for cell width)
-    attron(COLOR_PAIR(PAIR_WALL) | A_BOLD);
-    mvprintw(startY + height + 1, startX, "╚");
-    for (int i = 0; i < width; i++) {
-        for (int k = 0; k < cellW; k++) addstr("═");
-    }
-    addstr("╝");
-    attroff(COLOR_PAIR(PAIR_WALL) | A_BOLD);
 }
 
-void GameMode::drawStatusBar() {
-    const int statusY = 1;
-    const std::string title = "MAZE RUNNER - INTERACTIVE MODE";
-    const int titleWidth = measureDisplayWidth(title);
-    const int innerWidth = std::max(titleWidth + 8, 60);
-    const int startX = std::max(0, (COLS - (innerWidth + 2)) / 2);
+void GameMode::drawHud() {
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);
 
-    attron(A_BOLD | COLOR_PAIR(PAIR_WALL));
-    move(statusY, startX);
-    addstr("╔");
-    for (int i = 0; i < innerWidth; ++i) addstr("═");
-    addstr("╗");
-    attroff(A_BOLD | COLOR_PAIR(PAIR_WALL));
+    long elapsed = getElapsedTime();
+    std::ostringstream timeStream;
+    timeStream << std::setfill('0') << std::setw(2) << (elapsed / 60) << ":" << std::setw(2) << (elapsed % 60);
 
-    move(statusY + 1, startX);
-    attron(A_BOLD | COLOR_PAIR(PAIR_WALL));
-    addstr("║");
-    attroff(A_BOLD | COLOR_PAIR(PAIR_WALL));
+    std::string movesText = "Moves: " + std::to_string(moves_);
+    std::string timeText = "Time: " + timeStream.str();
+    std::string themeText = "Theme: " + renderer_.getThemeName();
 
-    const int leftPad = (innerWidth - titleWidth) / 2;
-    const int rightPad = innerWidth - leftPad - titleWidth;
+    attron(COLOR_PAIR(PAIR_HUD_LABEL));
+    mvwprintw(stdscr, rows - 2, 3, "%s", movesText.c_str());
+    mvwprintw(stdscr, rows - 2, (cols - timeText.length()) / 2, "%s", timeText.c_str());
+    mvwprintw(stdscr, rows - 2, cols - 3 - themeText.length(), "%s", themeText.c_str());
+    attroff(COLOR_PAIR(PAIR_HUD_LABEL));
 
-    attron(COLOR_PAIR(PAIR_PATH));
-    for (int i = 0; i < leftPad; ++i) addch(' ');
-    attroff(COLOR_PAIR(PAIR_PATH));
-
-    attron(A_BOLD | COLOR_PAIR(PAIR_GOAL));
-    addstr(title.c_str());
-    attroff(A_BOLD | COLOR_PAIR(PAIR_GOAL));
-
-    attron(COLOR_PAIR(PAIR_PATH));
-    for (int i = 0; i < rightPad; ++i) addch(' ');
-    attroff(COLOR_PAIR(PAIR_PATH));
-
-    attron(A_BOLD | COLOR_PAIR(PAIR_WALL));
-    addstr("║");
-    attroff(A_BOLD | COLOR_PAIR(PAIR_WALL));
-
-    move(statusY + 2, startX);
-    attron(A_BOLD | COLOR_PAIR(PAIR_WALL));
-    addstr("╚");
-    for (int i = 0; i < innerWidth; ++i) addstr("═");
-    addstr("╝");
-    attroff(A_BOLD | COLOR_PAIR(PAIR_WALL));
-
-    const int elapsed = getElapsedTime();
-    std::ostringstream statsBuilder;
-    statsBuilder << "Moves: " << moves_ << "   Time: "
-                 << std::setfill('0') << std::setw(2) << (elapsed / 60)
-                 << ":" << std::setw(2) << (elapsed % 60);
-    const std::string statsPreview = statsBuilder.str();
-    const int statsWidth = measureDisplayWidth(statsPreview);
-    const int statsY = 3 + maze_->getHeight() + 3;
-    const int statsX = std::max(0, (COLS - statsWidth) / 2);
-
-    move(statsY, statsX);
-    attron(COLOR_PAIR(PAIR_PATH));
-    addstr("Moves: ");
-    attroff(COLOR_PAIR(PAIR_PATH));
-
-    attron(A_BOLD | COLOR_PAIR(PAIR_PLAYER));
-    printw("%d", moves_);
-    attroff(A_BOLD | COLOR_PAIR(PAIR_PLAYER));
-
-    attron(COLOR_PAIR(PAIR_PATH));
-    addstr("   Time: ");
-    attroff(COLOR_PAIR(PAIR_PATH));
-
-    attron(A_BOLD | COLOR_PAIR(PAIR_WATER));
-    printw("%02d:%02d", elapsed / 60, elapsed % 60);
-    attroff(A_BOLD | COLOR_PAIR(PAIR_WATER));
-}
-
-void GameMode::drawInstructions() {
-    const int baseY = 3 + maze_->getHeight() + 6;
-
-    struct Segment {
-        std::string text;
-        short pair;
-        bool bold;
-    };
-
-    const std::vector<std::vector<Segment>> lines = {
-        {{"Controls:", PAIR_MOUNTAIN, true}},
-        {{"↑/W", PAIR_PATH, true}, {": Move Up    ", PAIR_PATH, false}, {"↓/S", PAIR_PATH, true}, {": Move Down", PAIR_PATH, false}},
-        {{"←/A", PAIR_PATH, true}, {": Move Left  ", PAIR_PATH, false}, {"→/D", PAIR_PATH, true}, {": Move Right", PAIR_PATH, false}},
-        {{"Q/ESC", PAIR_PATH, true}, {": Quit Game", PAIR_PATH, false}},
-        {},
-        {{"Objective: Navigate ", PAIR_PATH, false}, {"●", PAIR_PLAYER, true}, {" to the goal ", PAIR_PATH, false}, {"★", PAIR_GOAL, true}},
-        {{"Stay swift: fewer moves and faster time boost your score!", PAIR_PATH, false}}
-    };
-
-    int currentY = baseY;
-    for (const auto& line : lines) {
-        std::string plain;
-        for (const auto& segment : line) {
-            plain += segment.text;
-        }
-
-        if (plain.empty()) {
-            ++currentY;
-            continue;
-        }
-
-        const int width = measureDisplayWidth(plain);
-        const int startX = std::max(0, (COLS - width) / 2);
-        move(currentY, startX);
-
-        for (const auto& segment : line) {
-            if (segment.pair > 0) {
-                attron(COLOR_PAIR(segment.pair));
-            }
-            if (segment.bold) {
-                attron(A_BOLD);
-            }
-            addstr(segment.text.c_str());
-            if (segment.bold) {
-                attroff(A_BOLD);
-            }
-            if (segment.pair > 0) {
-                attroff(COLOR_PAIR(segment.pair));
-            }
-        }
-
-        ++currentY;
-    }
+    printStatusLog(3, 3, cols - 6);
 }
 
 void GameMode::showVictoryScreen() {
     clear();
-    
-    int centerY = LINES / 2 - 5;
-    int centerX = COLS / 2;
-    
-    // Victory banner with beautiful UTF-8 - "CONGRATULATIONS!" is 16 chars, box is 38 wide
-    // (38-16)/2 = 11 left + 11 right
-    attron(COLOR_PAIR(PAIR_VICTORY) | A_BOLD | A_BLINK);
-    mvprintw(centerY, centerX - 19, "╔══════════════════════════════════════╗");
-    mvprintw(centerY + 1, centerX - 19, "║                                      ║");
-    mvprintw(centerY + 2, centerX - 19, "║");
-    attroff(COLOR_PAIR(PAIR_VICTORY) | A_BOLD | A_BLINK);
-    
-    attron(COLOR_PAIR(PAIR_GOAL) | A_BOLD);
-    mvprintw(centerY + 2, centerX - 8, "CONGRATULATIONS!");
-    attroff(COLOR_PAIR(PAIR_GOAL) | A_BOLD);
-    
-    attron(COLOR_PAIR(PAIR_VICTORY) | A_BOLD | A_BLINK);
-    mvprintw(centerY + 2, centerX + 19, "║");
-    mvprintw(centerY + 3, centerX - 19, "║                                      ║");
-    mvprintw(centerY + 4, centerX - 19, "╚══════════════════════════════════════╝");
-    attroff(COLOR_PAIR(PAIR_VICTORY) | A_BOLD | A_BLINK);
-    
-    // Stats
-    int elapsed = getElapsedTime();
-    attron(COLOR_PAIR(PAIR_PATH) | A_BOLD);
-    mvprintw(centerY + 6, centerX - 10, "You solved the maze!");
-    attroff(COLOR_PAIR(PAIR_PATH) | A_BOLD);
-    
-    attron(COLOR_PAIR(PAIR_PLAYER));
-    mvprintw(centerY + 8, centerX - 8, "Total Moves: ");
-    attroff(COLOR_PAIR(PAIR_PLAYER));
-    attron(A_BOLD);
-    printw("%d", moves_);
-    attroff(A_BOLD);
-    
-    attron(COLOR_PAIR(PAIR_WATER));
-    mvprintw(centerY + 9, centerX - 8, "Time Taken:  ");
-    attroff(COLOR_PAIR(PAIR_WATER));
-    attron(A_BOLD);
-    printw("%02d:%02d", elapsed / 60, elapsed % 60);
-    attroff(A_BOLD);
-    
-    // Calculate score (lower is better)
-    int score = 10000 - (moves_ * 10) - elapsed;
-    if (score < 0) score = 0;
-    
-    attron(COLOR_PAIR(PAIR_MOUNTAIN));
-    mvprintw(centerY + 10, centerX - 8, "Final Score: ");
-    attroff(COLOR_PAIR(PAIR_MOUNTAIN));
-    attron(A_BOLD);
-    printw("%d", score);
-    attroff(A_BOLD);
-    
-    attron(COLOR_PAIR(PAIR_WALL));
-    mvprintw(centerY + 13, centerX - 15, "Press any key to return to menu...");
-    attroff(COLOR_PAIR(PAIR_WALL));
-    
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);
+
+    const std::vector<std::string> art = {
+        " __   __           __        __            _ ",
+        " \\ \\ / /__  _   _  \\ \\      / /__  _ __ __| |",
+        "  \\ V / _ \\| | | |  \\ \\ /\\ / / _ \\| '__/ _` |",
+        "   | | (_) | |_| |   \\ V  V / (_) | | | (_| |",
+        "   |_|\\___/ \\__,_|    \\_/\\_/ \\___/|_|  \\__,_|"
+    };
+
+    attron(COLOR_PAIR(PAIR_VICTORY_BG));
+    for (int r = 0; r < rows; ++r) {
+        mvwhline(stdscr, r, 0, ' ', cols);
+    }
+    attroff(COLOR_PAIR(PAIR_VICTORY_BG));
+
+    int artY = (rows - art.size() - 5) / 2;
+    attron(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
+    for (size_t i = 0; i < art.size(); ++i) {
+        mvwprintw(stdscr, artY + i, (cols - art[i].length()) / 2, "%s", art[i].c_str());
+    }
+    attroff(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
+
+    long elapsed = getElapsedTime();
+    std::string movesStr = "Moves: " + std::to_string(moves_);
+    std::ostringstream timeStream;
+    timeStream << "Time: " << std::setfill('0') << std::setw(2) << (elapsed / 60) << ":" << std::setw(2) << (elapsed % 60);
+    std::string timeStr = timeStream.str();
+
+    mvwprintw(stdscr, artY + art.size() + 2, (cols - movesStr.length()) / 2, "%s", movesStr.c_str());
+    mvwprintw(stdscr, artY + art.size() + 3, (cols - timeStr.length()) / 2, "%s", timeStr.c_str());
+    mvwprintw(stdscr, rows - 3, (cols - 25) / 2, "Press any key to continue");
+
     refresh();
-    timeout(-1); // Blocking input
+    timeout(-1); // Wait for key press
     getch();
 }
 
-int GameMode::getElapsedTime() const {
-    return static_cast<int>(time(nullptr) - startTime_);
+void GameMode::logStatus(const std::string& message, int lifetimeFrames) {
+    if (statusLog_.size() > 5) {
+        statusLog_.erase(statusLog_.begin());
+    }
+    statusLog_.emplace_back(message, lifetimeFrames);
 }
 
-bool GameMode::isGameRunning() const {
-    return gameRunning_;
+void GameMode::pruneLog() {
+    statusLog_.erase(std::remove_if(statusLog_.begin(), statusLog_.end(),
+        [](std::pair<std::string, int>& entry) {
+            return --entry.second <= 0;
+        }), statusLog_.end());
 }
 
-int GameMode::getMoves() const {
-    return moves_;
+void GameMode::printStatusLog(int startY, int startX, int width) {
+    int y = startY;
+    for (const auto& entry : statusLog_) {
+        mvwprintw(stdscr, y++, startX, "%.*s", width, entry.first.c_str());
+    }
+}
+
+long GameMode::getElapsedTime() const {
+    auto now = std::chrono::steady_clock::now();
+    return std::chrono::duration_cast<std::chrono::seconds>(now - startTime_).count();
 }
 
 bool GameMode::hasWon() const {
     return gameWon_;
+}
+
+int GameMode::getMoves() const {
+    return moves_;
 }

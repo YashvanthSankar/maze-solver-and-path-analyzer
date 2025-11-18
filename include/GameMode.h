@@ -3,59 +3,58 @@
 
 #include "Maze.h"
 #include "Point.h"
-#include <ctime>
+#include "Renderer.h"
+#include "CLIUtils.h"
+#include <chrono>
 #include <string>
+#include <vector>
 
-/**
- * @class GameMode
- * @brief Interactive game mode where player navigates maze using arrow keys
- * 
- * Demonstrates:
- * - Encapsulation: Private game state (position, moves, time)
- * - Abstraction: Simple interface to complex ncurses interaction
- * - Operator Overloading: Uses Point operators for movement
- */
 class GameMode {
 public:
-    enum class GameTheme { NeonMatrix = 0, EmberGlow, ArcticAurora, Monochrome };
+    GameMode(Renderer& renderer, CLIUtils& cli);
+    ~GameMode();
+
+    void startGame(Maze& maze);
+
+    bool hasWon() const;
+    int getMoves() const;
 
 private:
+    // --- Core Components ---
+    Renderer& renderer_;
+    CLIUtils& cli_;
     Maze* maze_;
+
+    // --- Game State ---
     Point playerPos_;
     Point goalPos_;
     int moves_;
-    time_t startTime_;
+    std::chrono::steady_clock::time_point startTime_;
     bool gameWon_;
     bool gameRunning_;
-    GameTheme theme_;
-    
-    // Encapsulated helper methods
+
+    // --- Animation & UI State ---
+    int frameCounter_;
+    std::vector<std::pair<std::string, int>> statusLog_;
+
+    // --- Core Methods ---
     void initNcurses();
     void cleanupNcurses();
-    bool isValidMove(const Point& newPos) const;
-    void updateDisplay();
-    void drawMaze();
-    void drawStatusBar();
-    void drawInstructions();
-    void showVictoryScreen();
-    void configureColorPairs();
-    int measureDisplayWidth(const std::string& text) const;
-    
-public:
-    // Constructor and Destructor
-    GameMode();
-    ~GameMode();
-    
-    // Abstracted game interface
-    void startGame(Maze& maze);
     void handleInput();
-    bool isGameRunning() const;
-    void setTheme(GameTheme theme);
-    
-    // Game state accessors
-    int getMoves() const;
-    int getElapsedTime() const;
-    bool hasWon() const;
+    void updateDisplay();
+    bool isValidMove(const Point& newPos) const;
+
+    // --- Drawing Methods ---
+    void drawLayout();
+    void drawMaze();
+    void drawHud();
+    void showVictoryScreen();
+
+    // --- Helpers ---
+    void logStatus(const std::string& message, int lifetimeFrames = 120);
+    void pruneLog();
+    void printStatusLog(int startY, int startX, int width);
+    long getElapsedTime() const;
 };
 
 #endif // GAMEMODE_H

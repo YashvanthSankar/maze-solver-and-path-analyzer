@@ -11,10 +11,10 @@
 
 class GameMode {
 public:
-    GameMode(Renderer& renderer, CLIUtils& cli);
+    GameMode(Maze& maze, Renderer& renderer, CLIUtils& cli);
     ~GameMode();
 
-    void startGame(Maze& maze);
+    void startGame();
 
     bool hasWon() const;
     int getMoves() const;

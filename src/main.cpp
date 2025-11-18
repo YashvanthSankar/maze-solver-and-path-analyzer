@@ -1021,8 +1021,8 @@ void MazeSolverApp::handlePlayGame() {
     usleep(4000000); // 4 seconds
 
     // Start the game!
-    GameMode game(renderer_, cli_);
-    game.startGame(maze_);
+    GameMode game(maze_, renderer_, cli_);
+    game.startGame();
     
     // Game finished, back to CLI
     cli_.clearScreen();

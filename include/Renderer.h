@@ -76,6 +76,7 @@ public:
     const ThemePalette& getActivePalette() const;
     static std::vector<std::string> listAvailableThemes();
     static const ThemePalette& getThemePalette(std::size_t index);
+    static short ansiToNcursesColor(const std::string& ansiColor);
 
     bool saveToFile(const char* filename) const;
     void clear();

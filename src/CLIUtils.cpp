@@ -332,11 +332,16 @@ void CLIUtils::drawSpinner(int frame) const {
 }
 
 void CLIUtils::waitForEnter() const {
+    std::string message = "Press Enter to continue...";
+    int pad = centerPadding(measureDisplayWidth(message));
+    
+    std::cout << "\n" << std::string(pad, ' ');
     if (colorsEnabled_) {
-        std::cout << resolveColor(colorScheme_.muted, DIM) << "\nPress Enter to continue..." << RESET;
+        std::cout << resolveColor(colorScheme_.muted, DIM) << message << RESET;
     } else {
-        std::cout << "\nPress Enter to continue...";
+        std::cout << message;
     }
+    std::cout.flush();
     // Clear any leftover input, then wait for Enter
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
@@ -344,11 +349,16 @@ void CLIUtils::waitForEnter() const {
 int CLIUtils::getNumberInput(const char* prompt, int min, int max) const {
     int value;
     while (true) {
+        int promptLen = measureDisplayWidth(std::string(prompt));
+        int pad = centerPadding(promptLen + 20); // Add space for user input
+        
+        std::cout << std::string(pad, ' ');
         if (colorsEnabled_) {
             std::cout << resolveColor(colorScheme_.info, CYAN) << prompt << RESET;
         } else {
             std::cout << prompt;
         }
+        std::cout.flush();
         
         if (std::cin >> value && value >= min && value <= max) {
             std::cin.ignore(10000, '\n');
@@ -362,11 +372,16 @@ int CLIUtils::getNumberInput(const char* prompt, int min, int max) const {
 }
 
 void CLIUtils::getStringInput(const char* prompt, char* buffer, int maxLen) const {
+    int promptLen = measureDisplayWidth(std::string(prompt));
+    int pad = centerPadding(promptLen + 30); // Add space for user input
+    
+    std::cout << std::string(pad, ' ');
     if (colorsEnabled_) {
         std::cout << resolveColor(colorScheme_.info, CYAN) << prompt << RESET;
     } else {
         std::cout << prompt;
     }
+    std::cout.flush();
     std::cin.getline(buffer, maxLen);
 }
 

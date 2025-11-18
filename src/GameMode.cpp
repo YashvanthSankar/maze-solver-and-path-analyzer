@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iomanip>
 #include <algorithm>
+#include <cmath>
 
 namespace {
     // Define color pairs for ncurses
@@ -20,10 +21,10 @@ namespace {
     constexpr short PAIR_VICTORY_FG = 11;
 }
 
-GameMode::GameMode(Renderer& renderer, CLIUtils& cli)
+GameMode::GameMode(Maze& maze, Renderer& renderer, CLIUtils& cli)
     : renderer_(renderer),
       cli_(cli),
-      maze_(nullptr),
+      maze_(&maze),
       playerPos_(0, 0),
       goalPos_(0, 0),
       moves_(0),
@@ -51,21 +52,18 @@ void GameMode::initNcurses() {
         start_color();
         use_default_colors();
 
-        // Initialize a conservative set of color pairs for ncurses.
-        // Renderer palettes are ANSI/truecolor strings; mapping those precisely
-        // to ncurses colors is out of scope here, so use reasonable defaults
-        // that work across terminals.
-        init_pair(PAIR_PLAYER, COLOR_YELLOW, -1);
-        init_pair(PAIR_GOAL, COLOR_MAGENTA, -1);
-        init_pair(PAIR_WALL, COLOR_BLUE, -1);
-        init_pair(PAIR_PATH, COLOR_WHITE, -1);
-        init_pair(PAIR_WATER, COLOR_CYAN, -1);
-        init_pair(PAIR_MOUNTAIN, COLOR_RED, -1);
-        init_pair(PAIR_FRAME, COLOR_GREEN, -1);
-        init_pair(PAIR_HUD_LABEL, COLOR_WHITE, -1);
-        init_pair(PAIR_HUD_VALUE, COLOR_CYAN, -1);
-        init_pair(PAIR_VICTORY_BG, COLOR_GREEN, -1);
-        init_pair(PAIR_VICTORY_FG, COLOR_BLACK, -1);
+        const auto& p = renderer_.getActivePalette();
+        init_pair(PAIR_PLAYER, Renderer::ansiToNcursesColor(p.cellStartColor), -1);
+        init_pair(PAIR_GOAL, Renderer::ansiToNcursesColor(p.cellGoalColor), -1);
+        init_pair(PAIR_WALL, Renderer::ansiToNcursesColor(p.cellWallColor), -1);
+        init_pair(PAIR_PATH, Renderer::ansiToNcursesColor(p.cellFloorColor), -1);
+        init_pair(PAIR_WATER, Renderer::ansiToNcursesColor(p.cellWaterColor), -1);
+        init_pair(PAIR_MOUNTAIN, Renderer::ansiToNcursesColor(p.cellMountainColor), -1);
+        init_pair(PAIR_FRAME, Renderer::ansiToNcursesColor(p.frameColor), -1);
+        init_pair(PAIR_HUD_LABEL, Renderer::ansiToNcursesColor(p.statLabelColor), -1);
+        init_pair(PAIR_HUD_VALUE, Renderer::ansiToNcursesColor(p.statValueColor), -1);
+        init_pair(PAIR_VICTORY_BG, Renderer::ansiToNcursesColor(p.headerPrimary), -1);
+        init_pair(PAIR_VICTORY_FG, Renderer::ansiToNcursesColor(p.headerSecondary), -1);
     }
 }
 
@@ -74,8 +72,7 @@ void GameMode::cleanupNcurses() {
     gameRunning_ = false;
 }
 
-void GameMode::startGame(Maze& maze) {
-    maze_ = &maze;
+void GameMode::startGame() {
     playerPos_ = maze_->getStart();
     goalPos_ = maze_->getGoal();
     moves_ = 0;
@@ -86,7 +83,30 @@ void GameMode::startGame(Maze& maze) {
     statusLog_.clear();
 
     initNcurses();
-    logStatus("Game started. Good luck!");
+    
+    // Show centered game start screen
+    clear();
+    int rows, cols;
+    getmaxyx(stdscr, rows, cols);
+    
+    std::string startMsg = "GAME STARTED";
+    std::string goodLuck = "Good luck!";
+    std::string controls = "Use Arrow Keys or WASD to move | Press Q to quit";
+    
+    attron(COLOR_PAIR(PAIR_HUD_VALUE) | A_BOLD);
+    mvwprintw(stdscr, rows / 2 - 2, (cols - startMsg.length()) / 2, "%s", startMsg.c_str());
+    attroff(COLOR_PAIR(PAIR_HUD_VALUE) | A_BOLD);
+    
+    attron(COLOR_PAIR(PAIR_GOAL));
+    mvwprintw(stdscr, rows / 2, (cols - goodLuck.length()) / 2, "%s", goodLuck.c_str());
+    attroff(COLOR_PAIR(PAIR_GOAL));
+    
+    attron(COLOR_PAIR(PAIR_HUD_LABEL));
+    mvwprintw(stdscr, rows / 2 + 2, (cols - controls.length()) / 2, "%s", controls.c_str());
+    attroff(COLOR_PAIR(PAIR_HUD_LABEL));
+    
+    refresh();
+    napms(2000); // Show for 2 seconds
 
     while (gameRunning_) {
         handleInput();
@@ -96,8 +116,10 @@ void GameMode::startGame(Maze& maze) {
 
         if (playerPos_ == goalPos_ && !gameWon_) {
             gameWon_ = true;
+            updateDisplay(); // One final draw of the maze with player on goal
             showVictoryScreen();
             gameRunning_ = false;
+            break; // Immediately exit the game loop
         }
     }
 
@@ -238,25 +260,102 @@ void GameMode::showVictoryScreen() {
     getmaxyx(stdscr, rows, cols);
 
     const std::vector<std::string> art = {
-        " __   __           __        __            _ ",
-        " \\ \\ / /__  _   _  \\ \\      / /__  _ __ __| |",
-        "  \\ V / _ \\| | | |  \\ \\ /\\ / / _ \\| '__/ _` |",
-        "   | | (_) | |_| |   \\ V  V / (_) | | | (_| |",
-        "   |_|\\___/ \\__,_|    \\_/\\_/ \\___/|_|  \\__,_|"
+        "##    ##  #######  ##     ##    ##      ##  #######  ##    ## ",
+        " ##  ##  ##     ## ##     ##    ##  ##  ## ##     ## ###   ## ",
+        "  ####   ##     ## ##     ##    ##  ##  ## ##     ## ####  ## ",
+        "   ##    ##     ## ##     ##    ##  ##  ## ##     ## ## ## ## ",
+        "   ##     #######   #######      ###  ###   #######  ##  #### "
     };
 
-    attron(COLOR_PAIR(PAIR_VICTORY_BG));
-    for (int r = 0; r < rows; ++r) {
-        mvwhline(stdscr, r, 0, ' ', cols);
+    const std::vector<std::string> stars = {
+        "          * * * * * * * * *          ",
+        "          Congratulations!           ",
+        "          * * * * * * * * *          "
+    };
+
+    const short SWEEP_COLOR_PAIR = 12;
+    const short STAR_COLOR_PAIR = 13;
+    if (has_colors()) {
+        init_pair(SWEEP_COLOR_PAIR, COLOR_YELLOW, -1);
+        init_pair(STAR_COLOR_PAIR, COLOR_MAGENTA, -1);
     }
+
+    int artHeight = art.size();
+
+    int artY = (rows - artHeight - 12) / 2;
+
+    // Fade-in animation with wave effect
+    for (int phase = 0; phase <= 30; ++phase) {
+        attron(COLOR_PAIR(PAIR_VICTORY_BG));
+        for (int r = 0; r < rows; ++r) {
+            mvwhline(stdscr, r, 0, ' ', cols);
+        }
+        attroff(COLOR_PAIR(PAIR_VICTORY_BG));
+
+        // Draw main text with subtle wave animation
+        for (size_t i = 0; i < art.size(); ++i) {
+            int wave_offset = (int)(1.5 * sin((phase * 0.2) + (i * 0.5)));
+            int xPos = (cols - art[i].length()) / 2 + wave_offset;
+            
+            if (phase > (int)(i * 3)) {
+                attron(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
+                mvwprintw(stdscr, artY + i, xPos, "%s", art[i].c_str());
+                attroff(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
+            }
+        }
+
+        // Draw stars with twinkling effect
+        if (phase > 15) {
+            for (size_t i = 0; i < stars.size(); ++i) {
+                bool twinkle = ((phase + i) % 3 < 2);
+                int centerX = (cols - stars[i].length()) / 2;
+                
+                if (i == 1) {
+                    // Middle line (Congratulations) - always bright
+                    attron(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
+                } else if (twinkle) {
+                    attron(COLOR_PAIR(STAR_COLOR_PAIR) | A_BOLD);
+                } else {
+                    attron(COLOR_PAIR(SWEEP_COLOR_PAIR));
+                }
+                mvwprintw(stdscr, artY + art.size() + 2 + i, centerX, "%s", stars[i].c_str());
+                attroff(COLOR_PAIR(STAR_COLOR_PAIR) | A_BOLD);
+                attroff(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
+                attroff(COLOR_PAIR(SWEEP_COLOR_PAIR));
+            }
+        }
+
+        refresh();
+        napms(60);
+    }
+
+    // Final static display
+    attron(COLOR_PAIR(PAIR_VICTORY_BG));
+    for (int r = 0; r < rows; ++r) mvwhline(stdscr, r, 0, ' ', cols);
     attroff(COLOR_PAIR(PAIR_VICTORY_BG));
 
-    int artY = (rows - art.size() - 5) / 2;
     attron(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
     for (size_t i = 0; i < art.size(); ++i) {
-        mvwprintw(stdscr, artY + i, (cols - art[i].length()) / 2, "%s", art[i].c_str());
+        int centerX = (cols - art[i].length()) / 2;
+        mvwprintw(stdscr, artY + i, centerX, "%s", art[i].c_str());
     }
     attroff(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
+
+    // Draw final stars - properly centered
+    for (size_t i = 0; i < stars.size(); ++i) {
+        int centerX = (cols - stars[i].length()) / 2;
+        if (i == 1) {
+            attron(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
+        } else {
+            attron(COLOR_PAIR(STAR_COLOR_PAIR) | A_BOLD);
+        }
+        mvwprintw(stdscr, artY + art.size() + 2 + i, centerX, "%s", stars[i].c_str());
+        if (i == 1) {
+            attroff(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
+        } else {
+            attroff(COLOR_PAIR(STAR_COLOR_PAIR) | A_BOLD);
+        }
+    }
 
     long elapsed = getElapsedTime();
     std::string movesStr = "Moves: " + std::to_string(moves_);
@@ -264,12 +363,18 @@ void GameMode::showVictoryScreen() {
     timeStream << "Time: " << std::setfill('0') << std::setw(2) << (elapsed / 60) << ":" << std::setw(2) << (elapsed % 60);
     std::string timeStr = timeStream.str();
 
-    mvwprintw(stdscr, artY + art.size() + 2, (cols - movesStr.length()) / 2, "%s", movesStr.c_str());
-    mvwprintw(stdscr, artY + art.size() + 3, (cols - timeStr.length()) / 2, "%s", timeStr.c_str());
-    mvwprintw(stdscr, rows - 3, (cols - 25) / 2, "Press any key to continue");
+    attron(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
+    mvwprintw(stdscr, artY + art.size() + stars.size() + 4, (cols - movesStr.length()) / 2, "%s", movesStr.c_str());
+    mvwprintw(stdscr, artY + art.size() + stars.size() + 5, (cols - timeStr.length()) / 2, "%s", timeStr.c_str());
+    attroff(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
+
+    std::string pressKey = "[ Press any key to continue ]";
+    attron(COLOR_PAIR(PAIR_VICTORY_FG));
+    mvwprintw(stdscr, rows - 3, (cols - pressKey.length()) / 2, "%s", pressKey.c_str());
+    attroff(COLOR_PAIR(PAIR_VICTORY_FG));
 
     refresh();
-    timeout(-1); // Wait for key press
+    timeout(-1);
     getch();
 }
 
@@ -290,7 +395,14 @@ void GameMode::pruneLog() {
 void GameMode::printStatusLog(int startY, int startX, int width) {
     int y = startY;
     for (const auto& entry : statusLog_) {
-        mvwprintw(stdscr, y++, startX, "%.*s", width, entry.first.c_str());
+        // Center the message in the available width
+        int msgLen = entry.first.length();
+        int centerX = startX + (width - msgLen) / 2;
+        if (centerX < startX) centerX = startX;
+        
+        attron(COLOR_PAIR(PAIR_HUD_VALUE));
+        mvwprintw(stdscr, y++, centerX, "%.*s", width, entry.first.c_str());
+        attroff(COLOR_PAIR(PAIR_HUD_VALUE));
     }
 }
 

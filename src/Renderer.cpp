@@ -1,3 +1,4 @@
+#include <ncurses.h>
 #include "Renderer.h"
 #include "PathAnalyzer.h"
 
@@ -207,6 +208,19 @@ void Renderer::printCell(char cell) const {
     } else {
         std::cout << glyph;
     }
+}
+
+short Renderer::ansiToNcursesColor(const std::string& ansiColor) {
+    if (ansiColor.find("31m") != std::string::npos) return COLOR_RED;
+    if (ansiColor.find("32m") != std::string::npos) return COLOR_GREEN;
+    if (ansiColor.find("33m") != std::string::npos) return COLOR_YELLOW;
+    if (ansiColor.find("34m") != std::string::npos) return COLOR_BLUE;
+    if (ansiColor.find("35m") != std::string::npos) return COLOR_MAGENTA;
+    if (ansiColor.find("36m") != std::string::npos) return COLOR_CYAN;
+    if (ansiColor.find("37m") != std::string::npos) return COLOR_WHITE;
+    if (ansiColor.find("30m") != std::string::npos) return COLOR_BLACK;
+    // Add more complex mappings from 256-color or RGB to ncurses if needed
+    return -1; // Default color
 }
 
 void Renderer::drawGrid() const {

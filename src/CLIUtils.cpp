@@ -39,7 +39,7 @@ namespace {
         bool active_;
     };
 }
-// ANSI color codes
+
 const char* CLIUtils::RESET = "\033[0m";
 const char* CLIUtils::BOLD = "\033[1m";
 const char* CLIUtils::DIM = "\033[2m";
@@ -66,21 +66,21 @@ CLIUtils::CLIUtils() : colorsEnabled_(true), colorScheme_(defaultScheme()) {}
 
 CLIUtils::ColorScheme CLIUtils::defaultScheme() {
     return ColorScheme{
-        std::string(CYAN),        // primary
-        std::string(BLUE),        // secondary
-        std::string(YELLOW),      // accent
-        std::string(GREEN),       // success
-        std::string(YELLOW),      // warning
-        std::string(RED),         // error
-        std::string(CYAN),        // info
-        std::string(DIM),         // muted
-        std::string(CYAN),        // frame
-        std::string(MAGENTA),     // badge
-        std::string(WHITE),       // headline
-        std::string(BG_BLACK),    // panelBackground
-        std::string(WHITE),       // panelForeground
-        std::string(BG_BLUE),     // selectionBackground
-        std::string(WHITE)        // selectionForeground
+        std::string(CYAN),        
+        std::string(BLUE),        
+        std::string(YELLOW),      
+        std::string(GREEN),       
+        std::string(YELLOW),      
+        std::string(RED),         
+        std::string(CYAN),        
+        std::string(DIM),         
+        std::string(CYAN),        
+        std::string(MAGENTA),     
+        std::string(WHITE),       
+        std::string(BG_BLACK),    
+        std::string(WHITE),       
+        std::string(BG_BLUE),     
+        std::string(WHITE)        
     };
 }
 
@@ -342,7 +342,7 @@ void CLIUtils::waitForEnter() const {
         std::cout << message;
     }
     std::cout.flush();
-    // Clear any leftover input, then wait for Enter
+    
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 }
 
@@ -350,7 +350,7 @@ int CLIUtils::getNumberInput(const char* prompt, int min, int max) const {
     int value;
     while (true) {
         int promptLen = measureDisplayWidth(std::string(prompt));
-        int pad = centerPadding(promptLen + 20); // Add space for user input
+        int pad = centerPadding(promptLen + 20); 
         
         std::cout << std::string(pad, ' ');
         if (colorsEnabled_) {
@@ -373,7 +373,7 @@ int CLIUtils::getNumberInput(const char* prompt, int min, int max) const {
 
 void CLIUtils::getStringInput(const char* prompt, char* buffer, int maxLen) const {
     int promptLen = measureDisplayWidth(std::string(prompt));
-    int pad = centerPadding(promptLen + 30); // Add space for user input
+    int pad = centerPadding(promptLen + 30); 
     
     std::cout << std::string(pad, ' ');
     if (colorsEnabled_) {
@@ -597,7 +597,7 @@ int CLIUtils::selectFromList(const std::string& title,
         getTerminalSize(rows, cols);
 
         const int headerHeight = title.empty() ? 0 : 3;
-        const int headerSpacing = 1; // blank line after header (or leading spacing when no header)
+        const int headerSpacing = 1; 
         const int optionLines = static_cast<int>(options.size());
         const int spacerAfterOptions = 1;
         const int instructionsLines = 1;

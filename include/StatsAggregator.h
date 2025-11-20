@@ -8,8 +8,8 @@
 #include <type_traits>
 #include <vector>
 
-// Generic statistics helper demonstrating Templates and Exception Handling
-// Provides min, max, and average calculations for numeric samples.
+
+
 template <typename T>
 class StatsAggregator {
     static_assert(std::is_arithmetic<T>::value, "StatsAggregator requires arithmetic types");

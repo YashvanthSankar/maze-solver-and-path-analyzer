@@ -34,7 +34,7 @@ private:
     int showMainMenu();
     CLIUtils::ColorScheme themeToScheme(const Renderer::ThemePalette& palette) const;
     
-    // Menu handlers
+    
     void handleLoadMaze();
     void handleGenerateMaze();
     void handleSolveBFS();
@@ -381,7 +381,7 @@ int MazeSolverApp::showMainMenu() {
             updateWidth(pointerArea + textWidth);
             displayItems.push_back(DisplayItem{&entry, number, entry.label, entry.badge, textWidth});
         }
-        updateWidth(pointerArea); // separator line
+        updateWidth(pointerArea); 
     }
 
     updateWidth(pointerArea + cli_.measureDisplayWidth("Session Status"));
@@ -433,7 +433,7 @@ int MazeSolverApp::showMainMenu() {
         const int totalItems = static_cast<int>(displayItems.size());
         const int statusCount = static_cast<int>(statusLines.size());
         const int boxLines = 5 + sectionCount * 2 + totalItems + statusCount;
-        const int contentHeight = boxLines + 1 + 1; // spacer + instructions
+        const int contentHeight = boxLines + 1 + 1; 
         const int topPadding = std::max(0, (rows - contentHeight) / 2);
 
         for (int i = 0; i < topPadding; ++i) {
@@ -968,7 +968,7 @@ void MazeSolverApp::handlePlayGame() {
     
     std::cout << "\n";
     
-    // Check if maze is loaded
+    
     if (!mazeLoaded_) {
         cli_.printInfo("No maze loaded. Let's generate one for you!");
 
@@ -991,7 +991,7 @@ void MazeSolverApp::handlePlayGame() {
         std::cout << " Generating game maze...\r";
         std::cout.flush();
 
-        MazeGenerator generator(1,1); // Dummy size, will be reset
+        MazeGenerator generator(1,1); 
         switch (difficulty) {
             case 0: 
                 generator.setDimensions(15, 15);
@@ -1009,24 +1009,24 @@ void MazeSolverApp::handlePlayGame() {
 
         mazeLoaded_ = true;
         cli_.printSuccess("Game maze generated!");
-        usleep(1500000); // 1.5 seconds
+        usleep(1500000); 
     }
     
-    // Briefing screen
+    
     cli_.clearScreen();
     cli_.printHeader("Entering Game Mode");
     cli_.printInfo("The screen will now switch to the interactive game.");
     cli_.printInfo("Use arrow keys or WASD to move. Press 'Q' to quit.");
     cli_.printSuccess("Good luck, have fun!");
-    usleep(4000000); // 4 seconds
+    usleep(4000000); 
 
-    // Start the game!
+    
     GameMode game(maze_, renderer_, cli_);
     game.startGame();
     
-    // Game finished, back to CLI
+    
     cli_.clearScreen();
-    cli_.showCursor(); // Ensure cursor is visible again
+    cli_.showCursor(); 
     cli_.printHeader("Game Session Ended");
 
     if (game.hasWon()) {

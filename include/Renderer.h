@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-// Renderer class for visualization (demonstrating Encapsulation)
+
 class Renderer {
 public:
     struct ThemePalette {
@@ -32,7 +32,7 @@ public:
     };
 
 private:
-    std::vector<char> displayGrid_;   // Encapsulated display buffer (row-major)
+    std::vector<char> displayGrid_;   
     int width_;
     int height_;
     CLIUtils cli_;

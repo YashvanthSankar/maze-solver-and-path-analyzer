@@ -3,6 +3,7 @@
 *.out
 maze_solver
 build/
+docs/
 
 # Editor/IDE files
 .vscode/

@@ -219,8 +219,8 @@ short Renderer::ansiToNcursesColor(const std::string& ansiColor) {
     if (ansiColor.find("36m") != std::string::npos) return COLOR_CYAN;
     if (ansiColor.find("37m") != std::string::npos) return COLOR_WHITE;
     if (ansiColor.find("30m") != std::string::npos) return COLOR_BLACK;
-    // Add more complex mappings from 256-color or RGB to ncurses if needed
-    return -1; // Default color
+    
+    return -1; 
 }
 
 void Renderer::drawGrid() const {

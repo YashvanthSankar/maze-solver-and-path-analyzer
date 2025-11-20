@@ -22,7 +22,7 @@ bool MazeGenerator::isValidForGeneration(const Maze& maze, const Point& p) const
            p.getY() > 0 && p.getY() < maze.getHeight();
 }
 
-// Linear Congruential Generator for randomness
+
 int MazeGenerator::nextRandom() {
     randomSeed_ = (randomSeed_ * 1103515245 + 12345) & 0x7fffffff;
     return randomSeed_;

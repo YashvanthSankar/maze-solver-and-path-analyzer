@@ -47,7 +47,7 @@ char Maze::getCellAt(int x, int y) const {
     if (x >= 0 && x < width_ && y >= 0 && y < height_) {
         return getCellUnchecked(x, y);
     }
-    return '#';  // Out of bounds treated as wall
+    return '#';  
 }
 
 void Maze::setStart(const Point& p) {
@@ -145,12 +145,12 @@ bool Maze::isGoal(const Point& p) const {
 void Maze::getNeighbors(const Point& p, Point* neighbors, int& count) const {
     count = 0;
 
-    // Four directions: up, right, down, left
+    
     const Point directions[4] = {
-        Point(0, -1),   // Up
-        Point(1, 0),    // Right
-        Point(0, 1),    // Down
-        Point(-1, 0)    // Left
+        Point(0, -1),   
+        Point(1, 0),    
+        Point(0, 1),    
+        Point(-1, 0)    
     };
 
     for (const auto& dir : directions) {

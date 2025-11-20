@@ -7,7 +7,7 @@
 #include <cmath>
 
 namespace {
-    // Define color pairs for ncurses
+    
     constexpr short PAIR_PLAYER = 1;
     constexpr short PAIR_GOAL = 2;
     constexpr short PAIR_WALL = 3;
@@ -46,7 +46,7 @@ void GameMode::initNcurses() {
     noecho();
     keypad(stdscr, TRUE);
     curs_set(0);
-    timeout(60); // ~16 FPS update rate
+    timeout(60); 
 
     if (has_colors() && renderer_.isColorModeEnabled()) {
         start_color();
@@ -84,7 +84,7 @@ void GameMode::startGame() {
 
     initNcurses();
     
-    // Show centered game start screen
+    
     clear();
     int rows, cols;
     getmaxyx(stdscr, rows, cols);
@@ -106,7 +106,7 @@ void GameMode::startGame() {
     attroff(COLOR_PAIR(PAIR_HUD_LABEL));
     
     refresh();
-    napms(2000); // Show for 2 seconds
+    napms(2000); 
 
     while (gameRunning_) {
         handleInput();
@@ -116,10 +116,10 @@ void GameMode::startGame() {
 
         if (playerPos_ == goalPos_ && !gameWon_) {
             gameWon_ = true;
-            updateDisplay(); // One final draw of the maze with player on goal
+            updateDisplay(); 
             showVictoryScreen();
             gameRunning_ = false;
-            break; // Immediately exit the game loop
+            break; 
         }
     }
 
@@ -143,11 +143,11 @@ void GameMode::handleInput() {
         case KEY_RIGHT: case 'd': case 'D':
             newPos = playerPos_ + Point(1, 0);
             break;
-        case 'q': case 'Q': case 27: // ESC
+        case 'q': case 'Q': case 27: 
             gameRunning_ = false;
             logStatus("Exiting game...");
             return;
-        case ERR: // No input
+        case ERR: 
             return;
         default:
             logStatus("Unknown key pressed.");
@@ -284,7 +284,7 @@ void GameMode::showVictoryScreen() {
 
     int artY = (rows - artHeight - 12) / 2;
 
-    // Fade-in animation with wave effect
+    
     for (int phase = 0; phase <= 30; ++phase) {
         attron(COLOR_PAIR(PAIR_VICTORY_BG));
         for (int r = 0; r < rows; ++r) {
@@ -292,7 +292,7 @@ void GameMode::showVictoryScreen() {
         }
         attroff(COLOR_PAIR(PAIR_VICTORY_BG));
 
-        // Draw main text with subtle wave animation
+        
         for (size_t i = 0; i < art.size(); ++i) {
             int wave_offset = (int)(1.5 * sin((phase * 0.2) + (i * 0.5)));
             int xPos = (cols - art[i].length()) / 2 + wave_offset;
@@ -304,14 +304,14 @@ void GameMode::showVictoryScreen() {
             }
         }
 
-        // Draw stars with twinkling effect
+        
         if (phase > 15) {
             for (size_t i = 0; i < stars.size(); ++i) {
                 bool twinkle = ((phase + i) % 3 < 2);
                 int centerX = (cols - stars[i].length()) / 2;
                 
                 if (i == 1) {
-                    // Middle line (Congratulations) - always bright
+                    
                     attron(COLOR_PAIR(SWEEP_COLOR_PAIR) | A_BOLD);
                 } else if (twinkle) {
                     attron(COLOR_PAIR(STAR_COLOR_PAIR) | A_BOLD);
@@ -329,7 +329,7 @@ void GameMode::showVictoryScreen() {
         napms(60);
     }
 
-    // Final static display
+    
     attron(COLOR_PAIR(PAIR_VICTORY_BG));
     for (int r = 0; r < rows; ++r) mvwhline(stdscr, r, 0, ' ', cols);
     attroff(COLOR_PAIR(PAIR_VICTORY_BG));
@@ -341,7 +341,7 @@ void GameMode::showVictoryScreen() {
     }
     attroff(COLOR_PAIR(PAIR_VICTORY_FG) | A_BOLD);
 
-    // Draw final stars - properly centered
+    
     for (size_t i = 0; i < stars.size(); ++i) {
         int centerX = (cols - stars[i].length()) / 2;
         if (i == 1) {
@@ -395,7 +395,7 @@ void GameMode::pruneLog() {
 void GameMode::printStatusLog(int startY, int startX, int width) {
     int y = startY;
     for (const auto& entry : statusLog_) {
-        // Center the message in the available width
+        
         int msgLen = entry.first.length();
         int centerX = startX + (width - msgLen) / 2;
         if (centerX < startX) centerX = startX;

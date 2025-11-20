@@ -20,12 +20,12 @@ public:
     int getMoves() const;
 
 private:
-    // --- Core Components ---
+    
     Renderer& renderer_;
     CLIUtils& cli_;
     Maze* maze_;
 
-    // --- Game State ---
+    
     Point playerPos_;
     Point goalPos_;
     int moves_;
@@ -33,28 +33,28 @@ private:
     bool gameWon_;
     bool gameRunning_;
 
-    // --- Animation & UI State ---
+    
     int frameCounter_;
     std::vector<std::pair<std::string, int>> statusLog_;
 
-    // --- Core Methods ---
+    
     void initNcurses();
     void cleanupNcurses();
     void handleInput();
     void updateDisplay();
     bool isValidMove(const Point& newPos) const;
 
-    // --- Drawing Methods ---
+    
     void drawLayout();
     void drawMaze();
     void drawHud();
     void showVictoryScreen();
 
-    // --- Helpers ---
+    
     void logStatus(const std::string& message, int lifetimeFrames = 120);
     void pruneLog();
     void printStatusLog(int startY, int startX, int width);
     long getElapsedTime() const;
 };
 
-#endif // GAMEMODE_H
+#endif 

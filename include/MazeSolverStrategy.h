@@ -5,7 +5,7 @@
 #include "Path.h"
 #include <string>
 
-// Abstract base class showcasing Inheritance and Polymorphism
+
 class MazeSolverStrategy {
 public:
     virtual ~MazeSolverStrategy() = default;

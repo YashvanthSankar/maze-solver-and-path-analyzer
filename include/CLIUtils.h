@@ -5,14 +5,14 @@
 #include <string>
 #include <vector>
 
-// CLI Utilities class for enhanced user experience (Encapsulation)
+
 class CLIUtils {
 private:
     static const char* RESET;
     static const char* BOLD;
     static const char* DIM;
     
-    // Colors
+    
     static const char* BLACK;
     static const char* RED;
     static const char* GREEN;
@@ -22,7 +22,7 @@ private:
     static const char* CYAN;
     static const char* WHITE;
     
-    // Background colors
+    
     static const char* BG_BLACK;
     static const char* BG_RED;
     static const char* BG_GREEN;
@@ -52,7 +52,7 @@ public:
     };
     
 private:
-    // Encapsulated state
+    
     bool colorsEnabled_;
     ColorScheme colorScheme_;
     static ColorScheme defaultScheme();
@@ -71,13 +71,13 @@ public:
 
     CLIUtils();
     
-    // Screen control
+    
     void clearScreen() const;
     void moveCursor(int row, int col) const;
     void hideCursor() const;
     void showCursor() const;
     
-    // Color output
+    
     void printColored(const char* text, const char* color) const;
     void printColored(const std::string& text, const std::string& color) const;
     void printSuccess(const char* text) const;
@@ -86,30 +86,30 @@ public:
     void printInfo(const char* text) const;
     void printHighlight(const char* text) const;
     
-    // Box drawing
+    
     void drawBox(int x, int y, int width, int height, const char* title = nullptr) const;
     void drawHorizontalLine(int length, char c = '=') const;
     
-    // Progress indicators
+    
     void drawProgressBar(int current, int total, int width = 40) const;
     void drawSpinner(int frame) const;
     
-    // Input helpers
+    
     void waitForEnter() const;
     int getNumberInput(const char* prompt, int min, int max) const;
     void getStringInput(const char* prompt, char* buffer, int maxLen) const;
     
-    // Formatting
+    
     void printCentered(const char* text, int width) const;
     void printHeader(const char* text, bool leadingBlank = true) const;
     void printSubHeader(const char* text) const;
     void printSeparator() const;
     
-    // Animations
+    
     void typewriterEffect(const char* text, int delayMs = 30) const;
     void fadeIn(const char* text) const;
     
-    // Color control
+    
     void enableColors();
     void disableColors();
     bool areColorsEnabled() const;
@@ -125,7 +125,7 @@ public:
                        bool allowEscape = false,
                        bool wrap = true) const;
     
-    // Optional ncurses support - controlled at compile time with USE_NCURSES
+    
     void initNcurses();
     void endNcurses();
 };

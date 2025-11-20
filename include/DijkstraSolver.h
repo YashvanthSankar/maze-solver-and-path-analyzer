@@ -6,7 +6,7 @@
 #include "Path.h"
 #include <vector>
 
-// Node for priority queue (encapsulation)
+
 class PQNode {
 private:
     Point point_;
@@ -19,12 +19,12 @@ public:
     Point getPoint() const;
     double getPriority() const;
     
-    // Operator overloading for comparison
+    
     bool operator<(const PQNode& other) const;
     bool operator>(const PQNode& other) const;
 };
 
-// Simple Priority Queue (min-heap, no templates)
+
 class PriorityQueue {
 private:
     std::vector<PQNode> heap_;
@@ -42,7 +42,7 @@ public:
     int getSize() const;
 };
 
-// DijkstraSolver class with weighted pathfinding leveraging Inheritance and Polymorphism
+
 class DijkstraSolver : public MazeSolverStrategy {
 private:
     std::vector<Point> parent_;

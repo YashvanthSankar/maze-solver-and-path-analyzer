@@ -370,7 +370,7 @@ void Renderer::printPathStats(const Maze& maze, const Path& path, const std::str
     double straightness = metrics.getStraightness() * 100.0;
 
     std::ostringstream costStream;
-    costStream << std::fixed << std::setprecision(2) << path.getCost();
+    costStream << std::fixed << std::setprecision(2) << metrics.getTotalCostWithPenalty();
 
     std::ostringstream avgStream;
     if (steps > 0) {
@@ -424,10 +424,14 @@ void Renderer::printComparisonStats(const Maze& maze,
     printPathStats(maze, path1, label1);
     printPathStats(maze, path2, label2);
 
+    PathAnalyzer analyzer1, analyzer2;
+    PathMetrics metrics1 = analyzer1.analyze(path1, maze);
+    PathMetrics metrics2 = analyzer2.analyze(path2, maze);
+
     int steps1 = std::max(0, path1.getSize() - 1);
     int steps2 = std::max(0, path2.getSize() - 1);
-    double cost1 = path1.getCost();
-    double cost2 = path2.getCost();
+    double cost1 = metrics1.getTotalCostWithPenalty();
+    double cost2 = metrics2.getTotalCostWithPenalty();
 
     std::string advantagePrefix = "  Advantage: ";
     std::string advantageValue;

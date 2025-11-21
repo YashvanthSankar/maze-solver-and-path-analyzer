@@ -720,7 +720,11 @@ void MazeSolverApp::handleSolveBFS() {
         int bfsSteps = std::max(0, bfsPath_.getSize() - 1);
         std::cout << "  Path length: " << bfsSteps << " steps\n";
         std::cout << "  Nodes explored: " << solver.getNodesExplored() << "\n";
-        std::cout << "  Cost: " << bfsPath_.getCost() << "\n";
+        
+        PathAnalyzer quickAnalyzer;
+        PathMetrics quickMetrics = quickAnalyzer.analyze(bfsPath_, maze_);
+        std::cout << "  Cost (with turn penalty): " << quickMetrics.getTotalCostWithPenalty() << "\n";
+        
         bfsSolved_ = true;
         
         std::cout << "\n";
@@ -762,7 +766,11 @@ void MazeSolverApp::handleSolveDijkstra() {
         int dijkstraSteps = std::max(0, dijkstraPath_.getSize() - 1);
         std::cout << "  Path length: " << dijkstraSteps << " steps\n";
         std::cout << "  Nodes explored: " << solver.getNodesExplored() << "\n";
-        std::cout << "  Cost: " << dijkstraPath_.getCost() << "\n";
+        
+        PathAnalyzer quickAnalyzer;
+        PathMetrics quickMetrics = quickAnalyzer.analyze(dijkstraPath_, maze_);
+        std::cout << "  Cost (with turn penalty): " << quickMetrics.getTotalCostWithPenalty() << "\n";
+        
         dijkstraSolved_ = true;
         
         std::cout << "\n";
@@ -936,7 +944,10 @@ void MazeSolverApp::handleQuickSolve() {
         cli_.printSuccess(successMessage.c_str());
         std::cout << "  Path length: " << std::max(0, solvedPath.getSize() - 1) << " steps\n";
         std::cout << "  Nodes explored: " << strategy->getNodesExplored() << "\n";
-        std::cout << "  Cost: " << solvedPath.getCost() << "\n\n";
+        
+        PathAnalyzer quickAnalyzer;
+        PathMetrics quickMetrics = quickAnalyzer.analyze(solvedPath, maze_);
+        std::cout << "  Cost (with turn penalty): " << quickMetrics.getTotalCostWithPenalty() << "\n\n";
 
         if (solverName.find("Breadth") != std::string::npos) {
             bfsPath_ = solvedPath;
@@ -953,8 +964,12 @@ void MazeSolverApp::handleQuickSolve() {
     int bfsSteps = std::max(0, bfsPath_.getSize() - 1);
     int dijkstraSteps = std::max(0, dijkstraPath_.getSize() - 1);
 
-    std::cout << "\n  BFS: " << bfsSteps << " steps, cost " << bfsPath_.getCost() << "\n";
-    std::cout << "  Dijkstra: " << dijkstraSteps << " steps, cost " << dijkstraPath_.getCost() << "\n";
+    PathAnalyzer bfsAnalyzer, dijkstraAnalyzer;
+    PathMetrics bfsMetrics = bfsAnalyzer.analyze(bfsPath_, maze_);
+    PathMetrics dijkstraMetrics = dijkstraAnalyzer.analyze(dijkstraPath_, maze_);
+
+    std::cout << "\n  BFS: " << bfsSteps << " steps, cost " << bfsMetrics.getTotalCostWithPenalty() << "\n";
+    std::cout << "  Dijkstra: " << dijkstraSteps << " steps, cost " << dijkstraMetrics.getTotalCostWithPenalty() << "\n";
     
     std::cout << "\n";
     renderer_.renderComparison(maze_, bfsPath_, dijkstraPath_, "BFS", "Dijkstra");

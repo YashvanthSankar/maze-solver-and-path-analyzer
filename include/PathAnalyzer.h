@@ -14,6 +14,7 @@ private:
     double straightness_;
     double avgStepCost_;
     int narrowPassages_;
+    double totalCostWithPenalty_;
     
 public:
     PathMetrics();
@@ -25,6 +26,7 @@ public:
     void setStraightness(double straightness);
     void setAvgStepCost(double cost);
     void setNarrowPassages(int passages);
+    void setTotalCostWithPenalty(double cost);
     
     
     int getTotalLength() const;
@@ -33,6 +35,7 @@ public:
     double getStraightness() const;
     double getAvgStepCost() const;
     int getNarrowPassages() const;
+    double getTotalCostWithPenalty() const;
     
     
     void display() const;

@@ -4,7 +4,8 @@
 #include <algorithm>
 
 PathMetrics::PathMetrics() : totalLength_(0), numberOfTurns_(0), directionChanges_(0),
-                             straightness_(0.0), avgStepCost_(0.0), narrowPassages_(0) {}
+                             straightness_(0.0), avgStepCost_(0.0), narrowPassages_(0), 
+                             totalCostWithPenalty_(0.0) {}
 
 void PathMetrics::setTotalLength(int length) {
     totalLength_ = length;
@@ -28,6 +29,10 @@ void PathMetrics::setAvgStepCost(double cost) {
 
 void PathMetrics::setNarrowPassages(int passages) {
     narrowPassages_ = passages;
+}
+
+void PathMetrics::setTotalCostWithPenalty(double cost) {
+    totalCostWithPenalty_ = cost;
 }
 
 int PathMetrics::getTotalLength() const {
@@ -54,6 +59,10 @@ int PathMetrics::getNarrowPassages() const {
     return narrowPassages_;
 }
 
+double PathMetrics::getTotalCostWithPenalty() const {
+    return totalCostWithPenalty_;
+}
+
 void PathMetrics::display() const {
     std::cout << "\n=== Path Analysis Results ===\n";
     std::cout << "Total Length: " << totalLength_ << " steps\n";
@@ -61,6 +70,7 @@ void PathMetrics::display() const {
     std::cout << "Direction Changes: " << directionChanges_ << "\n";
     std::cout << "Straightness: " << straightness_ << " (0.0-1.0)\n";
     std::cout << "Average Step Cost: " << avgStepCost_ << "\n";
+    std::cout << "Total Cost (with turn penalty): " << totalCostWithPenalty_ << "\n";
     std::cout << "Narrow Passages: " << narrowPassages_ << "\n";
     std::cout << "=============================\n";
 }
@@ -167,11 +177,15 @@ int PathAnalyzer::countNarrowPassages(const Path& path, const Maze& maze) const 
 PathMetrics PathAnalyzer::analyze(const Path& path, const Maze& maze) {
     int effectiveLength = std::max(0, path.getSize() - 1);
     metrics_.setTotalLength(effectiveLength);
-    metrics_.setNumberOfTurns(calculateTurns(path));
+    int numberOfTurns = calculateTurns(path);
+    metrics_.setNumberOfTurns(numberOfTurns);
     metrics_.setDirectionChanges(calculateDirectionChanges(path));
     metrics_.setStraightness(calculateStraightness(path));
     
     StatsAggregator<double> stepCosts;
+    double totalCostWithPenalty = 0.0;
+    int prevDir = -1;
+    
     for (int i = 1; i < path.getSize(); ++i) {
         const Point& current = path[i];
         char cell = maze.getCellAt(current);
@@ -181,7 +195,16 @@ PathMetrics PathAnalyzer::analyze(const Path& path, const Maze& maze) {
         } else if (cell == '^') {
             cost = 3.0;
         }
+        
         stepCosts.addSample(cost);
+        
+        int currDir = getDirection(path[i-1], path[i]);
+        if (prevDir != -1 && currDir != -1 && currDir != prevDir) {
+            totalCostWithPenalty += 0.5;
+        }
+        prevDir = currDir;
+        
+        totalCostWithPenalty += cost;
     }
 
     double averageCost = 0.0;
@@ -192,6 +215,7 @@ PathMetrics PathAnalyzer::analyze(const Path& path, const Maze& maze) {
     }
 
     metrics_.setAvgStepCost(averageCost);
+    metrics_.setTotalCostWithPenalty(totalCostWithPenalty);
     
     metrics_.setNarrowPassages(countNarrowPassages(path, maze));
     
